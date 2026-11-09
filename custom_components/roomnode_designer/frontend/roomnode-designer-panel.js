@@ -19,8 +19,8 @@ const TEXT = {
     tool_select: "Select", tool_room: "Draw room", tool_zone: "Detection zone", tool_excl: "Exclusion zone", tool_line: "Entry line",
     need_node: "Select a roomnode first", snap: "Snap", live: "Live targets", fit: "Fit to view", undo: "Undo", redo: "Redo",
     saved: "Saved", saving: "Saving…", unsaved: "Unsaved changes", conflict: "Changed elsewhere — reload", reload: "Reload",
-    push: "Push to device", pull: "Read from device", pushing: "Pushing…", pushed: "Sent to device", push_failed: "Push failed",
-    pull_confirm: "Replace the zones of this roomnode in the plan with the ones stored on the device?",
+    push: "Send to device", pull: "Read from device", sync_hint: "Send writes the radar settings (mode, distance, angles) and the zones, exclusion zones and entry lines to the device. Read does the reverse and replaces the plan's settings and shapes.", pushing: "Pushing…", pushed: "Sent to device", push_failed: "Push failed",
+    pull_confirm: "Replace the radar settings and zones of this roomnode in the plan with the ones stored on the device?",
     pulled: "Zones read from device", last_sent: "Last sent to device",
     node_settings: "Roomnode", name: "Name", device: "Device", mounting: "Mounting", wall: "Wall", ceiling: "Ceiling",
     height: "Mounting height (m)", range: "Max range (m)", fov: "Field of view (°)", rotation: "Heading (°, 0 = up)",
@@ -38,8 +38,8 @@ const TEXT = {
     hint_angle_wall: "Wall mode: -60° to 60° around the heading (0° = straight ahead). A narrower range makes the radar ignore the sides. Max distance 6 m.",
     hint_angle_ceiling: "Ceiling mode: 0° to 360° around the node (0° = the heading arrow). A smaller range limits detection to a slice. Max distance 4 m.",
     p_dist: "Max range must be between 0.1 and {max} m in this mode.", p_order: "Start must be smaller than end.", p_bounds: "Angles must stay between {lo}° and {hi}° in this mode.",
-    push_radar: "Send radar settings", pull_radar: "Read radar settings", on_device: "On the device", no_radar_entities: "This device does not expose the radar detection settings.",
-    mode_mismatch: "The radar is in {mode} mode, the plan says {plan}. Sending will switch the radar to {plan} mode.", push_radar_switch: "Switch radar & send settings", switch_confirm: "The radar will be switched from {from} to {to} mode. The zones on the device are replaced by the zones in the plan, and the detection distance and angles are set. Continue?", radar_switched: "Radar switched; settings and zones sent. Check with Live targets.", radar_pushed: "Radar updated", radar_same: "The radar already has these settings.", radar_pulled: "Radar settings read from the device", rk_distance: "distance", rk_start: "start", rk_end: "end",
+    on_device: "On the device", no_radar_entities: "This device does not expose the radar detection settings.",
+    mode_mismatch: "The radar is in {mode} mode, the plan says {plan}. Sending will switch the radar to {plan} mode.", push_radar_switch: "Switch radar & send to device", switch_confirm: "The radar will be switched from {from} to {to} mode. The zones on the device are replaced by the zones in the plan, and the detection distance and angles are set. Continue?", radar_switched: "Radar switched; settings and zones sent. Check with Live targets.", radar_pushed: "Radar updated", radar_same: "The radar already has these settings.", radar_pulled: "Radar settings read from the device", rk_distance: "distance", rk_start: "start", rk_end: "end",
     hide_tools: "Hide toolbar", show_tools: "Show toolbar", hide_left: "Hide lists", show_left: "Show lists", hide_right: "Hide details", show_right: "Show details", targets: "targets", menu: "Menu", plan: "Plan", panel: "Panel",
   },
   nl: {
@@ -49,8 +49,8 @@ const TEXT = {
     tool_select: "Selecteren", tool_room: "Kamer tekenen", tool_zone: "Detectiezone", tool_excl: "Uitsluitzone", tool_line: "Entry line",
     need_node: "Selecteer eerst een roomnode", snap: "Magneet", live: "Live doelen", fit: "Passend maken", undo: "Ongedaan maken", redo: "Opnieuw",
     saved: "Opgeslagen", saving: "Opslaan…", unsaved: "Niet-opgeslagen wijzigingen", conflict: "Elders gewijzigd — herlaad", reload: "Herladen",
-    push: "Naar apparaat sturen", pull: "Van apparaat lezen", pushing: "Versturen…", pushed: "Naar apparaat gestuurd", push_failed: "Versturen mislukt",
-    pull_confirm: "De zones van deze roomnode in de plattegrond vervangen door die op het apparaat?",
+    push: "Naar apparaat sturen", pull: "Van apparaat lezen", sync_hint: "Versturen schrijft de radar-instellingen (modus, afstand, hoeken) en de zones, uitsluitzones en toegangslijnen naar het apparaat. Lezen doet het omgekeerde en vervangt de instellingen en vormen in het plan.", pushing: "Versturen…", pushed: "Naar apparaat gestuurd", push_failed: "Versturen mislukt",
+    pull_confirm: "De radar-instellingen en zones van deze roomnode in de plattegrond vervangen door die op het apparaat?",
     pulled: "Zones van apparaat gelezen", last_sent: "Laatst naar apparaat gestuurd",
     node_settings: "Roomnode", name: "Naam", device: "Apparaat", mounting: "Montage", wall: "Wand", ceiling: "Plafond",
     height: "Montagehoogte (m)", range: "Max. bereik (m)", fov: "Kijkhoek (°)", rotation: "Richting (°, 0 = omhoog)",
@@ -68,8 +68,8 @@ const TEXT = {
     hint_angle_wall: "Wandmodus: -60° tot 60° rond de richting (0° = recht vooruit). Een smaller bereik laat de radar de zijkanten negeren. Max. afstand 6 m.",
     hint_angle_ceiling: "Plafondmodus: 0° tot 360° rond de node (0° = de richtingspijl). Een kleiner bereik beperkt de detectie tot een taartpunt. Max. afstand 4 m.",
     p_dist: "Max. bereik moet in deze modus tussen 0,1 en {max} m liggen.", p_order: "Start moet kleiner zijn dan eind.", p_bounds: "Hoeken moeten in deze modus tussen {lo}° en {hi}° blijven.",
-    push_radar: "Radar-instellingen versturen", pull_radar: "Radar-instellingen lezen", on_device: "Op het apparaat", no_radar_entities: "Dit apparaat toont de radar-detectie-instellingen niet.",
-    mode_mismatch: "De radar staat in {mode}-modus, het plan zegt {plan}. Versturen zet de radar om naar {plan}-modus.", push_radar_switch: "Radar omzetten & instellingen versturen", switch_confirm: "De radar wordt omgezet van {from} naar {to}-modus. De zones op het apparaat worden vervangen door de zones uit het plan, en afstand en hoeken worden ingesteld. Doorgaan?", radar_switched: "Radar omgezet; instellingen en zones verstuurd. Controleer met Live doelen.", radar_pushed: "Radar bijgewerkt", radar_same: "De radar had deze instellingen al.", radar_pulled: "Radar-instellingen van het apparaat gelezen", rk_distance: "afstand", rk_start: "start", rk_end: "eind",
+    on_device: "Op het apparaat", no_radar_entities: "Dit apparaat toont de radar-detectie-instellingen niet.",
+    mode_mismatch: "De radar staat in {mode}-modus, het plan zegt {plan}. Versturen zet de radar om naar {plan}-modus.", push_radar_switch: "Radar omzetten & naar apparaat sturen", switch_confirm: "De radar wordt omgezet van {from} naar {to}-modus. De zones op het apparaat worden vervangen door de zones uit het plan, en afstand en hoeken worden ingesteld. Doorgaan?", radar_switched: "Radar omgezet; instellingen en zones verstuurd. Controleer met Live doelen.", radar_pushed: "Radar bijgewerkt", radar_same: "De radar had deze instellingen al.", radar_pulled: "Radar-instellingen van het apparaat gelezen", rk_distance: "afstand", rk_start: "start", rk_end: "eind",
     hide_tools: "Werkbalk verbergen", show_tools: "Werkbalk tonen", hide_left: "Lijsten verbergen", show_left: "Lijsten tonen", hide_right: "Details verbergen", show_right: "Details tonen", targets: "doelen", menu: "Menu", plan: "Plattegrond", panel: "Paneel",
   },
 };
@@ -891,7 +891,7 @@ class RoomnodeDesignerPanel extends HTMLElement {
       this.draw = null; this.tool = "select"; this.drag = null; this.pendingArea = null; this._closeDim();
       this._renderAll(); return;
     }
-    if (this.locked && ["tool", "place", "draw-area", "delete", "flip-dir", "swap-ends", "pull", "pull-radar", "undo", "redo", "vdel"].includes(a) && !(a === "tool" && id === "select")) {
+    if (this.locked && ["tool", "place", "draw-area", "delete", "flip-dir", "swap-ends", "pull", "undo", "redo", "vdel"].includes(a) && !(a === "tool" && id === "select")) {
       this._toast(this.t("locked_msg"), true); return;
     }
     if (a === "tool") { this._setTool(id); return; }
@@ -914,8 +914,6 @@ class RoomnodeDesignerPanel extends HTMLElement {
     if (a === "swap-ends") { const l = this._selObj(); this._beginEdit(); [l.p1, l.p2] = [l.p2, l.p1]; l.in_side = l.in_side === "left" ? "right" : "left"; this._changed(); this._renderAll(); return; }
     if (a === "toggle-zones") { const n = this.selNode(); const ent = this.deviceOf(n)?.entities?.["Polygon Zones Enabled"]; if (ent) this._hass.callService("switch", "toggle", { entity_id: ent }); return; }
     if (a === "reset-people") { const n = this.selNode(); const ent = this.deviceOf(n)?.entities?.["Reset People Count"]; if (ent) this._hass.callService("button", "press", { entity_id: ent }); return; }
-    if (a === "push-radar") return this._pushRadar();
-    if (a === "pull-radar") return this._pullRadar();
     if (a === "push") return this._push();
     if (a === "pull") return this._pull();
   }
@@ -960,54 +958,48 @@ class RoomnodeDesignerPanel extends HTMLElement {
     this._changed(); this._renderAll();
   }
 
+  _hasRadar(dev) {
+    return !!dev && !!this.stateOf(dev, "Tracking Radar Detection Start Angle") && !!this.stateOf(dev, "Tracking Radar Detection End Angle");
+  }
+  /* One action: radar mode/distance/angles (when the device has them) and then zones + entry lines. */
   async _push() {
     const node = this.selNode(); if (!node) return;
-    this._toast(this.t("pushing"));
-    try {
-      await this._flushSave();
-      const res = await this._hass.callWS({ type: `${API}/push`, node_id: node.id });
-      this.lastSent[node.id] = res.sent;
-      this._toast(this.t("pushed")); this._renderRight();
-    } catch (err) { this._toast(`${this.t("push_failed")}: ${err?.message || err}`, true); }
-  }
-  async _pushRadar() {
-    const node = this.selNode(); if (!node) return;
-    this._toast(this.t("pushing"));
-    try {
-      await this._flushSave();
-      const dev = this.deviceOf(node);
-      const switching = !!dev && this._radarModeMismatch(node, dev);
+    const dev = this.deviceOf(node), radar = this._hasRadar(dev);
+    let switching = false;
+    if (radar) {
+      const problems = this._radarProblems(node);
+      if (problems.length) { this._toast(`${this.t("push_failed")}: ${problems[0]}`, true); return; }
+      switching = this._radarModeMismatch(node, dev);
       if (switching) {
         const mode = this.stateOf(dev, "Tracking Radar Installation Mode")?.state;
-        if (!confirm(this.t("switch_confirm").replace("{from}", mode).replace("{to}", node.mounting === "ceiling" ? "top" : "side"))) { this._dom.toast.hidden = true; return; }
+        if (!confirm(this.t("switch_confirm").replace("{from}", mode).replace("{to}", node.mounting === "ceiling" ? "top" : "side"))) return;
       }
-      const res = await this._hass.callWS({ type: `${API}/push_radar`, node_id: node.id, switch_mode: switching });
-      if (res.switched) await this._hass.callWS({ type: `${API}/push`, node_id: node.id });
-      const parts = Object.entries(res.sent).map(([k, v]) => `${this.t("rk_" + k)} ${v}${k === "distance" ? " m" : "°"}`);
-      this._toast(res.switched ? this.t("radar_switched") : parts.length ? `${this.t("radar_pushed")}: ${parts.join(", ")}` : this.t("radar_same"));
-      this._renderRight();
-    } catch (err) { this._toast(`${this.t("push_failed")}: ${err?.message || err}`, true); }
-  }
-  async _pullRadar() {
-    const node = this.selNode(); if (!node) return;
+    }
+    this._toast(this.t("pushing"));
     try {
       await this._flushSave();
-      const res = await this._hass.callWS({ type: `${API}/pull_radar`, node_id: node.id });
-      this._beginEdit();
-      if (res.mounting) node.mounting = res.mounting;
-      if (res.angle_start !== undefined) node.angle_start = res.angle_start;
-      if (res.angle_end !== undefined) node.angle_end = res.angle_end;
-      if (res.range !== undefined && res.range >= 500 && res.range <= 20000) node.range = res.range;
-      this._changed(); this._renderAll(); this._toast(this.t("radar_pulled"));
-    } catch (err) { this._toast(err?.message || String(err), true); }
+      let switched = false;
+      if (radar) switched = (await this._hass.callWS({ type: `${API}/push_radar`, node_id: node.id, switch_mode: switching })).switched;
+      const res = await this._hass.callWS({ type: `${API}/push`, node_id: node.id });
+      this.lastSent[node.id] = res.sent;
+      this._toast(switched ? this.t("radar_switched") : this.t("pushed")); this._renderRight();
+    } catch (err) { this._toast(`${this.t("push_failed")}: ${err?.message || err}`, true); }
   }
   async _pull() {
     const node = this.selNode(); if (!node) return;
     if (!confirm(this.t("pull_confirm"))) return;
     try {
       await this._flushSave();
+      const radar = this._hasRadar(this.deviceOf(node))
+        ? await this._hass.callWS({ type: `${API}/pull_radar`, node_id: node.id }) : null;
       const res = await this._hass.callWS({ type: `${API}/pull`, node_id: node.id });
       this._beginEdit();
+      if (radar) {
+        if (radar.mounting) node.mounting = radar.mounting;
+        if (radar.angle_start !== undefined) node.angle_start = radar.angle_start;
+        if (radar.angle_end !== undefined) node.angle_end = radar.angle_end;
+        if (radar.range !== undefined && radar.range >= 500 && radar.range <= 20000) node.range = radar.range;
+      }
       node.zones = res.zones.map((z) => ({ ...z, name: "" }));
       node.lines = res.lines;
       this.sel = { type: "node", id: node.id };
@@ -1099,7 +1091,7 @@ class RoomnodeDesignerPanel extends HTMLElement {
     if (!this.locked || !this.selNode() && !this._selObj()) return;
     const R = this._dom.right;
     R.querySelectorAll("input,select").forEach((el) => { el.disabled = true; });
-    R.querySelectorAll('[data-a="delete"],[data-a="pull"],[data-a="pull-radar"],[data-a="flip-dir"],[data-a="swap-ends"]').forEach((b) => { b.disabled = true; b.title = this.t("locked_msg"); });
+    R.querySelectorAll('[data-a="delete"],[data-a="pull"],[data-a="flip-dir"],[data-a="swap-ends"]').forEach((b) => { b.disabled = true; b.title = this.t("locked_msg"); });
     R.insertAdjacentHTML("afterbegin", `<div class="lockbar">🔒 ${esc(this.t("locked_hint"))}</div>`);
   }
   _renderLeftInner() {
@@ -1173,16 +1165,13 @@ class RoomnodeDesignerPanel extends HTMLElement {
         <div class="hint">${esc(this.t(obj.mounting === "ceiling" ? "hint_angle_ceiling" : "hint_angle_wall"))}</div>
         ${this._radarProblems(obj).map((m) => `<div class="warn">⚠ ${esc(m)}</div>`).join("")}
         ${this._radarDeviceLine(obj, dev)}
-        <div class="row">
-          <button class="btn" data-a="push-radar" ${dev && !this._radarProblems(obj).length ? "" : "disabled"}>${esc(this.t(dev && this._radarModeMismatch(obj, dev) ? "push_radar_switch" : "push_radar"))}</button>
-          <button class="btn ghost" data-a="pull-radar" ${dev ? "" : "disabled"}>${esc(this.t("pull_radar"))}</button>
-        </div>
         <div class="two">${field(this.t("pos_x"), inp("x", m2(obj.x), "number", 'step="0.1"'))}${field(this.t("pos_y"), inp("y", m2(obj.y), "number", 'step="0.1"'))}</div>
         <label class="chk"><input type="checkbox" data-f="flip_x" ${obj.flip_x ? "checked" : ""}> ${esc(this.t("flip_x"))}</label><div class="hint">${esc(this.t("flip_hint"))}</div>
         <div class="row">
-          <button class="btn" data-a="push" ${dev ? "" : "disabled"}>${esc(this.t("push"))}</button>
+          <button class="btn" data-a="push" ${dev ? "" : "disabled"}>${esc(this.t(dev && this._hasRadar(dev) && this._radarModeMismatch(obj, dev) ? "push_radar_switch" : "push"))}</button>
           <button class="btn ghost" data-a="pull" ${dev ? "" : "disabled"}>${esc(this.t("pull"))}</button>
         </div>
+        <div class="hint">${esc(this.t("sync_hint"))}</div>
         ${sent ? `<div class="hint">${esc(this.t("last_sent"))}</div>${Object.entries(sent).filter(([, v]) => v).map(([k, v]) => `<code class="sent"><b>${esc(k)}</b><br>${esc(v)}</code>`).join("")}` : ""}
         ${dev ? `<h3>${esc(this.t("zones_enabled"))}</h3><div class="row" style="align-items:center"><button class="btn ${en?.state === "on" ? "" : "ghost"} sm" data-a="toggle-zones">${en?.state === "on" ? "ON" : "OFF"}</button>
           <span>${esc(this.t("people"))}: <b>${esc(people?.state ?? "—")}</b></span><button class="btn ghost sm" data-a="reset-people">${esc(this.t("reset_people"))}</button></div>` : ""}

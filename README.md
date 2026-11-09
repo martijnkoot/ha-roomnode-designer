@@ -49,8 +49,9 @@ layout, otherwise the Marketplace cannot update it.
    it); a shape keeps at least 3 points. Click a dimension label to type an exact length such as
    `4,5`, `450cm` or `4500mm`: the far end of that edge moves, and when the next edge is
    perpendicular it slides along so right angles stay right. Points snap to the corners and walls of other rooms, line up with their corners (dashed green guide) and otherwise snap to a 10 cm grid, so a new room can be drawn flush against its neighbour. Hold **Shift** to keep lines horizontal or vertical: while drawing, the new point lines up with the previous one; while dragging a corner of a room or zone, it snaps to the position that keeps both neighbouring edges straight (a right angle); while moving a whole shape, it moves along one axis. Hold **Alt** to disable snapping.
-5. **Push to device** writes the saved shapes to the roomnode. **Read from device** replaces
-   the plan's zones for that node with what the device currently stores.
+5. **Send to device** writes everything to the roomnode in one go: the radar settings (mode,
+   distance, detection angles) and the zones, exclusion zones and entry lines. **Read from
+   device** does the reverse and replaces those settings and shapes in the plan.
 6. **Live targets** overlays the radar's tracked targets. Walk through the room: if the dots
    move opposite to you, enable *Mirror left/right* on the node.
 
@@ -65,8 +66,8 @@ zoom, drag the background to pan.
 
 A roomnode has a **Detection angle** (start and end) next to its range. They map to the radar's
 own settings `Tracking Radar Detection Start Angle`, `Detection End Angle` and `Detection
-Distance`, and decide the coverage drawn on the plan. *Send radar settings* writes them to the
-radar (only the values that differ); *Read radar settings* fills them in from the device.
+Distance`, and decide the coverage drawn on the plan. *Send to device* writes them to the radar (only the
+values that differ); *Read from device* fills them in from the device.
 Placing a roomnode starts from what the radar currently reports.
 
 The firmware accepts different ranges per installation mode, and the editor checks the same
@@ -80,7 +81,7 @@ rules before sending:
 So the angles are useful in ceiling mode too, but mean something different from wall mode.
 The mounting you choose in the plan decides the radar's installation mode (Wall = `side`,
 Ceiling = `top`). When the radar is in another mode, the button changes to "Switch radar & send
-settings". After a confirmation the integration sets the mode through the device's
+to device". After a confirmation the integration sets the mode through the device's
 `Tracking Radar Installation Mode` select, waits until the radar confirms it (no restart is
 needed), then writes distance and angles and replaces the zones on the device with the zones of
 the plan. If the radar does not confirm within 15 seconds nothing else is written. The
