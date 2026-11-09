@@ -34,7 +34,7 @@ const TEXT = {
     hint_line: "Click two points (Shift = straight). Then flip the direction in the panel if needed.",
     slots_full: "All slots of this type are in use.", slot_taken: "That slot is already in use.", auto_floor: "Default floor",
     floor_hint: "Using a default floor. Add floors under Settings → Areas to separate levels.",
-    cover_note: "Approximate radar coverage", min_points: "A shape needs at least 3 points.", dim_invalid: "Enter a length such as 4.5 (metres), 450cm or 4500mm.", dim_hint: "Enter = apply, Esc = cancel", hint_edit: "Click a corner, then press Delete or right-click it to remove it. Click a dimension to type an exact length.", hide_left: "Hide lists", show_left: "Show lists", hide_right: "Hide details", show_right: "Show details", targets: "targets", menu: "Menu", plan: "Plan", panel: "Panel",
+    cover_note: "Approximate radar coverage", min_points: "A shape needs at least 3 points.", dim_invalid: "Enter a length such as 4.5 (metres), 450cm or 4500mm.", dim_hint: "Enter = apply, Esc = cancel", hint_edit: "Click a corner, then press Delete or right-click it to remove it. Click a dimension to type an exact length.", hide_tools: "Hide toolbar", show_tools: "Show toolbar", hide_left: "Hide lists", show_left: "Show lists", hide_right: "Hide details", show_right: "Show details", targets: "targets", menu: "Menu", plan: "Plan", panel: "Panel",
   },
   nl: {
     title: "Roomnodes", floor: "Verdieping", nodes: "Roomnodes op deze verdieping", devices: "Beschikbare roomnodes",
@@ -58,7 +58,7 @@ const TEXT = {
     hint_line: "Klik twee punten (Shift = recht). Draai daarna zo nodig de richting om in het paneel.",
     slots_full: "Alle slots van dit type zijn in gebruik.", slot_taken: "Dat slot is al in gebruik.", auto_floor: "Standaardverdieping",
     floor_hint: "Standaardverdieping in gebruik. Voeg verdiepingen toe onder Instellingen → Gebieden.",
-    cover_note: "Geschat radarbereik", min_points: "Een vorm heeft minstens 3 punten nodig.", dim_invalid: "Voer een lengte in zoals 4,5 (meter), 450cm of 4500mm.", dim_hint: "Enter = toepassen, Esc = annuleren", hint_edit: "Klik een hoekpunt en druk op Delete, of rechtsklik erop, om het te verwijderen. Klik op een maat om een exacte lengte in te typen.", hide_left: "Lijsten verbergen", show_left: "Lijsten tonen", hide_right: "Details verbergen", show_right: "Details tonen", targets: "doelen", menu: "Menu", plan: "Plattegrond", panel: "Paneel",
+    cover_note: "Geschat radarbereik", min_points: "Een vorm heeft minstens 3 punten nodig.", dim_invalid: "Voer een lengte in zoals 4,5 (meter), 450cm of 4500mm.", dim_hint: "Enter = toepassen, Esc = annuleren", hint_edit: "Klik een hoekpunt en druk op Delete, of rechtsklik erop, om het te verwijderen. Klik op een maat om een exacte lengte in te typen.", hide_tools: "Werkbalk verbergen", show_tools: "Werkbalk tonen", hide_left: "Lijsten verbergen", show_left: "Lijsten tonen", hide_right: "Details verbergen", show_right: "Details tonen", targets: "doelen", menu: "Menu", plan: "Plattegrond", panel: "Paneel",
   },
 };
 
@@ -138,8 +138,9 @@ main{display:grid;grid-template-columns:300px 1fr 340px;min-height:0}
 aside.left{grid-column:1}.canvas{grid-column:2}aside.right{grid-column:3}
 main.hide-left{grid-template-columns:0 1fr 340px}main.hide-right{grid-template-columns:300px 1fr 0}main.hide-left.hide-right{grid-template-columns:0 1fr 0}
 main.hide-left aside.left,main.hide-right aside.right{display:none}
-.edge{position:absolute;top:76px;z-index:2;width:38px;height:38px;border:0;border-radius:8px;background:var(--rd-card);color:var(--rd-text);box-shadow:0 2px 8px rgba(0,0,0,.22);cursor:pointer;display:flex;align-items:center;justify-content:center}
-.edge:hover{background:var(--rd-bg)}.edge svg{width:22px;height:22px;pointer-events:none}.edge.l{left:12px}.edge.r{right:12px}
+.canvas{--edge-top:76px}main.hide-tools .canvas{--edge-top:12px}main.hide-tools .tools{display:none}
+.edge{position:absolute;top:var(--edge-top);z-index:2;width:38px;height:38px;border:0;border-radius:8px;background:var(--rd-card);color:var(--rd-text);box-shadow:0 2px 8px rgba(0,0,0,.22);cursor:pointer;display:flex;align-items:center;justify-content:center}
+.edge:hover{background:var(--rd-bg)}.edge svg{width:22px;height:22px;pointer-events:none}.edge.l{left:12px}.edge.r{right:12px}.edge.t{left:12px;top:calc(var(--edge-top) + 46px)}
 .edge .badge{position:absolute;top:6px;right:6px;width:9px;height:9px;border-radius:50%;background:var(--rd-accent);display:none}.edge.has .badge{display:block}
 aside{background:var(--rd-card);overflow:auto;padding:12px 14px;min-height:0}
 aside.left{border-right:1px solid var(--rd-line)}
@@ -168,7 +169,8 @@ svg.pan{cursor:grab}svg.draw{cursor:crosshair}
 .tools{position:absolute;top:12px;left:50%;transform:translateX(-50%);max-width:calc(100% - 24px);overflow-x:auto;display:flex;gap:2px;background:var(--rd-card);border-radius:10px;padding:4px;box-shadow:0 2px 8px rgba(0,0,0,.22);z-index:2}
 .tools button{display:flex;flex-direction:column;align-items:center;gap:1px;border:0;background:none;color:var(--rd-text);padding:6px 11px;border-radius:7px;cursor:pointer;font:inherit;font-size:11px;min-width:64px}
 .tools button svg{width:22px;height:22px;pointer-events:none}.tools button:hover:not(:disabled){background:var(--rd-bg)}
-.tools button.on{background:var(--rd-accent);color:#fff}.tools button:disabled{opacity:.35;cursor:default}
+.tools button.on,.tools button.on:hover:not(:disabled){background:var(--rd-accent);color:#fff}
+.tools button.on:hover:not(:disabled){filter:brightness(1.12)}.tools button:disabled{opacity:.35;cursor:default}
 .tools .sep{width:1px;background:var(--rd-line);margin:4px 3px}
 .zoom{position:absolute;right:12px;bottom:36px;display:flex;flex-direction:column;gap:2px;background:var(--rd-card);border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,.22);z-index:2;overflow:hidden}
 .zoom button{border:0;background:none;color:var(--rd-text);width:38px;height:36px;font-size:18px;cursor:pointer}.zoom button:hover{background:var(--rd-bg)}
@@ -275,6 +277,7 @@ class RoomnodeDesignerPanel extends HTMLElement {
           <div class="tools" id="tools"></div>
           <svg id="svg" xmlns="http://www.w3.org/2000/svg"></svg>
           <button class="edge l" data-a="toggle-left" id="edgeL"><svg viewBox="0 0 24 24"><path fill="currentColor" d="M3 3h18v18H3V3zm6 2H5v14h4V5zm2 0v14h8V5h-8z"/></svg></button>
+          <button class="edge t" data-a="toggle-tools" id="edgeT"><svg viewBox="0 0 24 24"><path fill="currentColor" d="M3 3h18v18H3V3zm2 2v4h14V5H5zm0 6v8h14v-8H5z"/></svg></button>
           <button class="edge r" data-a="toggle-right" id="edgeR"><svg viewBox="0 0 24 24"><path fill="currentColor" d="M3 3h18v18H3V3zm12 2H5v14h10V5zm2 0v14h2V5h-2z"/></svg><span class="badge"></span></button>
           <div class="zoom"><button data-a="zoom-in">+</button><button data-a="zoom-out">−</button><button data-a="fit" title="">⤢</button></div>
           <div class="bar"><span id="hint"></span><span id="coords"></span></div>
@@ -295,7 +298,7 @@ class RoomnodeDesignerPanel extends HTMLElement {
     d.svg.addEventListener("dblclick", (e) => this._onDbl(e));
     d.svg.addEventListener("wheel", (e) => this._onWheel(e), { passive: false });
     d.svg.addEventListener("contextmenu", (e) => e.preventDefault());
-    this.panels = { hideLeft: false, hideRight: false };
+    this.panels = { hideLeft: false, hideRight: false, hideTools: false };
     try { Object.assign(this.panels, JSON.parse(localStorage.getItem("roomnode_designer.panels") || "{}")); } catch (_) {}
     this._applyPanels();
     this._ro = new ResizeObserver(() => {
@@ -794,6 +797,11 @@ class RoomnodeDesignerPanel extends HTMLElement {
   async _onAction(e) {
     const el = e.target.closest("[data-a]"); if (!el) return;
     const a = el.dataset.a, id = el.dataset.id;
+    if (a === "toggle-tools") {
+      this.panels.hideTools = !this.panels.hideTools;
+      try { localStorage.setItem("roomnode_designer.panels", JSON.stringify(this.panels)); } catch (_) {}
+      this._applyPanels(); return;
+    }
     if (a === "toggle-left" || a === "toggle-right") {
       if (a === "toggle-left" && matchMedia("(max-width:1100px)").matches) { this._dom.main.classList.toggle("showleft"); return; }
       const key = a === "toggle-left" ? "hideLeft" : "hideRight";
@@ -920,6 +928,8 @@ class RoomnodeDesignerPanel extends HTMLElement {
     const d = this._dom, p = this.panels;
     d.main.classList.toggle("hide-left", !!p.hideLeft);
     d.main.classList.toggle("hide-right", !!p.hideRight);
+    d.main.classList.toggle("hide-tools", !!p.hideTools);
+    this.shadowRoot.getElementById("edgeT").title = this.t(p.hideTools ? "show_tools" : "hide_tools");
     const l = this.shadowRoot.getElementById("edgeL"), r = this.shadowRoot.getElementById("edgeR");
     l.title = this.t(p.hideLeft ? "show_left" : "hide_left");
     r.title = this.t(p.hideRight ? "show_right" : "hide_right");
