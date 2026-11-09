@@ -34,7 +34,7 @@ const TEXT = {
     hint_line: "Click two points (Shift = straight). Then flip the direction in the panel if needed.",
     slots_full: "All slots of this type are in use.", slot_taken: "That slot is already in use.", auto_floor: "Default floor",
     floor_hint: "Using a default floor. Add floors under Settings → Areas to separate levels.",
-    cover_note: "Approximate radar coverage", min_points: "A shape needs at least 3 points.", dim_invalid: "Enter a length such as 4.5 (metres), 450cm or 4500mm.", dim_hint: "Enter = apply, Esc = cancel", hint_edit: "Click a corner, then press Delete or right-click it to remove it. Click a dimension to type an exact length.", hide_tools: "Hide toolbar", show_tools: "Show toolbar", hide_left: "Hide lists", show_left: "Show lists", hide_right: "Hide details", show_right: "Show details", targets: "targets", menu: "Menu", plan: "Plan", panel: "Panel",
+    cover_note: "Approximate radar coverage", min_points: "A shape needs at least 3 points.", dim_invalid: "Enter a length such as 4.5 (metres), 450cm or 4500mm.", dim_hint: "Enter = apply, Esc = cancel", hint_edit: "Click a corner, then press Delete or right-click it to remove it. Click a dimension to type an exact length.", lock: "Lock", unlock: "Unlock", lock_title: "Lock the drawing against accidental changes", unlock_title: "Unlock to edit the drawing", locked_msg: "Locked. Unlock to make changes.", locked_hint: "Locked: you can select, pan, zoom and push; nothing can be changed.", hide_tools: "Hide toolbar", show_tools: "Show toolbar", hide_left: "Hide lists", show_left: "Show lists", hide_right: "Hide details", show_right: "Show details", targets: "targets", menu: "Menu", plan: "Plan", panel: "Panel",
   },
   nl: {
     title: "Roomnodes", floor: "Verdieping", nodes: "Roomnodes op deze verdieping", devices: "Beschikbare roomnodes",
@@ -58,7 +58,7 @@ const TEXT = {
     hint_line: "Klik twee punten (Shift = recht). Draai daarna zo nodig de richting om in het paneel.",
     slots_full: "Alle slots van dit type zijn in gebruik.", slot_taken: "Dat slot is al in gebruik.", auto_floor: "Standaardverdieping",
     floor_hint: "Standaardverdieping in gebruik. Voeg verdiepingen toe onder Instellingen → Gebieden.",
-    cover_note: "Geschat radarbereik", min_points: "Een vorm heeft minstens 3 punten nodig.", dim_invalid: "Voer een lengte in zoals 4,5 (meter), 450cm of 4500mm.", dim_hint: "Enter = toepassen, Esc = annuleren", hint_edit: "Klik een hoekpunt en druk op Delete, of rechtsklik erop, om het te verwijderen. Klik op een maat om een exacte lengte in te typen.", hide_tools: "Werkbalk verbergen", show_tools: "Werkbalk tonen", hide_left: "Lijsten verbergen", show_left: "Lijsten tonen", hide_right: "Details verbergen", show_right: "Details tonen", targets: "doelen", menu: "Menu", plan: "Plattegrond", panel: "Paneel",
+    cover_note: "Geschat radarbereik", min_points: "Een vorm heeft minstens 3 punten nodig.", dim_invalid: "Voer een lengte in zoals 4,5 (meter), 450cm of 4500mm.", dim_hint: "Enter = toepassen, Esc = annuleren", hint_edit: "Klik een hoekpunt en druk op Delete, of rechtsklik erop, om het te verwijderen. Klik op een maat om een exacte lengte in te typen.", lock: "Vergrendel", unlock: "Ontgrendel", lock_title: "Vergrendel de tekening tegen onbedoelde wijzigingen", unlock_title: "Ontgrendel om de tekening te bewerken", locked_msg: "Vergrendeld. Ontgrendel om te wijzigen.", locked_hint: "Vergrendeld: je kunt selecteren, verschuiven, zoomen en naar het apparaat sturen; niets kan gewijzigd worden.", hide_tools: "Werkbalk verbergen", show_tools: "Werkbalk tonen", hide_left: "Lijsten verbergen", show_left: "Lijsten tonen", hide_right: "Details verbergen", show_right: "Details tonen", targets: "doelen", menu: "Menu", plan: "Plattegrond", panel: "Paneel",
   },
 };
 
@@ -170,7 +170,9 @@ svg.pan{cursor:grab}svg.draw{cursor:crosshair}
 .tools button{display:flex;flex-direction:column;align-items:center;gap:1px;border:0;background:none;color:var(--rd-text);padding:6px 11px;border-radius:7px;cursor:pointer;font:inherit;font-size:11px;min-width:64px}
 .tools button svg{width:22px;height:22px;pointer-events:none}.tools button:hover:not(:disabled){background:var(--rd-bg)}
 .tools button.on,.tools button.on:hover:not(:disabled){background:var(--rd-accent);color:#fff}
-.tools button.on:hover:not(:disabled){filter:brightness(1.12)}.tools button:disabled{opacity:.35;cursor:default}
+.tools button.on:hover:not(:disabled){filter:brightness(1.12)}
+.tools button.lock.on,.tools button.lock.on:hover:not(:disabled){background:#f57c00}
+.lockbar{background:color-mix(in srgb,#f57c00 14%,transparent);color:var(--rd-text);border:1px solid #f57c00;border-radius:8px;padding:8px 10px;margin-bottom:10px;font-size:13px}.tools button:disabled{opacity:.35;cursor:default}
 .tools .sep{width:1px;background:var(--rd-line);margin:4px 3px}
 .zoom{position:absolute;right:12px;bottom:36px;display:flex;flex-direction:column;gap:2px;background:var(--rd-card);border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,.22);z-index:2;overflow:hidden}
 .zoom button{border:0;background:none;color:var(--rd-text);width:38px;height:36px;font-size:18px;cursor:pointer}.zoom button:hover{background:var(--rd-bg)}
@@ -191,6 +193,8 @@ const ICONS = {
   undo: '<svg viewBox="0 0 24 24"><path fill="currentColor" d="M12.5 8c-2.7 0-5.1 1-7 2.6L2 7v9h9l-3.6-3.6A8 8 0 0120 15.5l2.4-.8C21.2 10.900 17.200 8 12.500 8z"/></svg>',
   redo: '<svg viewBox="0 0 24 24"><path fill="currentColor" d="M18.400 10.600A11 11 0 0011.500 8c-4.700 0-8.700 2.900-9.900 6.700l2.400.8A8 8 0 0116.600 12.400L13 16h9V7z"/></svg>',
   live: '<svg viewBox="0 0 24 24"><path fill="currentColor" d="M12 8a4 4 0 100 8 4 4 0 000-8zM4.900 4.900l1.400 1.400a8 8 0 000 11.400l-1.400 1.400a10 10 0 010-14.200zm14.200 0a10 10 0 010 14.200l-1.400-1.400a8 8 0 000-11.400z"/></svg>',
+  lock: '<svg viewBox="0 0 24 24"><path fill="currentColor" d="M18 8h-1V6A5 5 0 007 6v2H6a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V10a2 2 0 00-2-2zM9 6a3 3 0 016 0v2H9V6zm3 11a2 2 0 110-4 2 2 0 010 4z"/></svg>',
+  unlock: '<svg viewBox="0 0 24 24"><path fill="currentColor" d="M18 8h-1V6.500A4.500 4.500 0 007.500 5L9.300 5.800A2.500 2.500 0 0115 6.500V8H6a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V10a2 2 0 00-2-2zm-6 9a2 2 0 110-4 2 2 0 010 4z"/></svg>',
   snap: '<svg viewBox="0 0 24 24"><path fill="currentColor" d="M3 3h4v4H3zm7 0h4v4h-4zm7 0h4v4h-4zM3 10h4v4H3zm7 0h4v4h-4zm7 0h4v4h-4zM3 17h4v4H3zm7 0h4v4h-4zm7 0h4v4h-4z"/></svg>',
 };
 
@@ -228,6 +232,8 @@ class RoomnodeDesignerPanel extends HTMLElement {
     // Flush a pending autosave when the tab is hidden or closed.
     this._onVis = (e) => { if ((e.type === "pagehide" || document.visibilityState === "hidden") && this.status === "unsaved") this._save(); };
   }
+
+  get locked() { return !!this.panels?.locked; }
 
   /* ---------- HA panel contract ---------- */
   set hass(h) {
@@ -298,7 +304,7 @@ class RoomnodeDesignerPanel extends HTMLElement {
     d.svg.addEventListener("dblclick", (e) => this._onDbl(e));
     d.svg.addEventListener("wheel", (e) => this._onWheel(e), { passive: false });
     d.svg.addEventListener("contextmenu", (e) => e.preventDefault());
-    this.panels = { hideLeft: false, hideRight: false, hideTools: false };
+    this.panels = { hideLeft: false, hideRight: false, hideTools: false, locked: false };
     try { Object.assign(this.panels, JSON.parse(localStorage.getItem("roomnode_designer.panels") || "{}")); } catch (_) {}
     this._applyPanels();
     this._ro = new ResizeObserver(() => {
@@ -489,8 +495,8 @@ class RoomnodeDesignerPanel extends HTMLElement {
   /* noSnap (Alt): free placement. ortho (Shift): array of anchor points; the result is
      forced onto the horizontal/vertical through one anchor, or, with two anchors (the
      neighbours of a polygon corner), onto the corner that keeps both edges axis-aligned. */
-  _snap(w, noSnap, ortho) {
-    const p = this._snapFree(w, noSnap);
+  _snap(w, noSnap, ortho, skip) {
+    const p = this._snapFree(w, noSnap, skip);
     if (!ortho || !ortho.length) return p;
     if (ortho.length === 1) {
       const a = ortho[0];
@@ -500,14 +506,52 @@ class RoomnodeDesignerPanel extends HTMLElement {
     const c1 = [a[0], b[1]], c2 = [b[0], a[1]];
     return dist(c1, p) <= dist(c2, p) ? c1 : c2;
   }
-  _snapFree(w, noSnap) {
-    if (!this.snapOn || noSnap) return [Math.round(w[0]), Math.round(w[1])];
-    const near = 10 / this.view.s;
-    let best = null, bd = near;
-    for (const r of this.fl.rooms) for (const p of r.points) { const d = dist(p, w); if (d < bd) { bd = d; best = p; } }
-    if (best) return [best[0], best[1]];
+  /* Snap order: corner of another room, then its walls, then alignment with corners
+     (also those of the shape being drawn), then the grid. `skip` = {obj, i} leaves the corner
+     being dragged (and its two edges) out of the candidates. this._snapHit feeds the markers. */
+  _snapFree(w, noSnap, skip) {
+    this._snapHit = null;
+    const rnd = (v) => [Math.round(v[0]), Math.round(v[1])];
+    if (!this.snapOn || noSnap) return rnd(w);
+    const T = 10 / this.view.s;
+    const verts = [], edges = [];
+    for (const r of this.fl.rooms) {
+      const n = r.points.length, mine = skip && skip.obj === r;
+      r.points.forEach((p, i) => {
+        const j = (i + 1) % n;
+        if (!(mine && skip.i === i)) verts.push(p);
+        if (!(mine && (skip.i === i || skip.i === j))) edges.push([p, r.points[j]]);
+      });
+    }
+    let best = null, bd = T;
+    for (const p of verts) { const d = dist(p, w); if (d < bd) { bd = d; best = p; } }
+    if (best) { this._snapHit = { p: best, kind: "vertex" }; return [best[0], best[1]]; }
+
+    let fx = null, fy = null, fxd = T, fyd = T, slant = null, sd = T;
+    for (const [a, b] of edges) {
+      const dx = b[0] - a[0], dy = b[1] - a[1];
+      if (Math.abs(dy) < 1 && w[0] >= Math.min(a[0], b[0]) - T && w[0] <= Math.max(a[0], b[0]) + T) {
+        const d = Math.abs(w[1] - a[1]); if (d < fyd) { fyd = d; fy = a[1]; }
+      } else if (Math.abs(dx) < 1 && w[1] >= Math.min(a[1], b[1]) - T && w[1] <= Math.max(a[1], b[1]) + T) {
+        const d = Math.abs(w[0] - a[0]); if (d < fxd) { fxd = d; fx = a[0]; }
+      } else if (Math.abs(dx) >= 1 && Math.abs(dy) >= 1) {
+        const l2 = dx * dx + dy * dy;
+        const t = Math.max(0, Math.min(1, ((w[0] - a[0]) * dx + (w[1] - a[1]) * dy) / l2));
+        const q = [a[0] + t * dx, a[1] + t * dy], d = dist(q, w);
+        if (d < sd) { sd = d; slant = q; }
+      }
+    }
+    if (slant && fx === null && fy === null) { const q = rnd(slant); this._snapHit = { p: q, kind: "edge" }; return q; }
+    const onWall = fx !== null || fy !== null;
+
+    let vx = null, vy = null;
+    const cands = [...verts, ...(this.draw?.points || [])];
+    if (fx === null) { let d0 = T; for (const p of cands) { const d = Math.abs(p[0] - w[0]); if (d < d0) { d0 = d; fx = p[0]; vx = p; } } }
+    if (fy === null) { let d0 = T; for (const p of cands) { const d = Math.abs(p[1] - w[1]); if (d < d0) { d0 = d; fy = p[1]; vy = p; } } }
     const g = this.view.s * 100 >= 6 ? 100 : 500;
-    return [Math.round(w[0] / g) * g, Math.round(w[1] / g) * g];
+    const out = [fx ?? Math.round(w[0] / g) * g, fy ?? Math.round(w[1] / g) * g];
+    if (fx !== null || fy !== null) this._snapHit = { p: out, kind: onWall ? "edge" : "align", vx, vy };
+    return out;
   }
 
   /* ---------- pointer interaction ---------- */
@@ -517,7 +561,7 @@ class RoomnodeDesignerPanel extends HTMLElement {
     const [sx, sy] = this._evPoint(e);
     const w = this.s2w(sx, sy);
     this._closeDim();
-    if (e.button === 2 && this.tool === "select") {
+    if (e.button === 2 && this.tool === "select" && !this.locked) {
       const hv = e.target.closest("[data-t='vh']");
       if (hv) { this._deleteVertex(Number(hv.dataset.i)); return; }
     }
@@ -534,6 +578,7 @@ class RoomnodeDesignerPanel extends HTMLElement {
     if (!t) { this.sel = null; this.drag = { type: "pan", sx, sy, ox: this.view.ox, oy: this.view.oy }; this._renderAll(); return; }
     const id = el.dataset.id, i = Number(el.dataset.i);
 
+    if (this.locked && ["vdel", "dim", "vh", "mh", "lp", "rot"].includes(t)) { this.drag = { type: "pan", sx, sy, ox: this.view.ox, oy: this.view.oy }; return; }
     if (t === "vdel") { this._deleteVertex(i); return; }
     if (t === "dim") { this.drag = { type: "dim", i, kind: el.dataset.kind }; return; }
     if (t === "vh") { this._beginEdit(); this.drag = { type: "vertex", i, sx, sy, moved: false }; return; }
@@ -550,6 +595,7 @@ class RoomnodeDesignerPanel extends HTMLElement {
     else if (t === "room") this.sel = { type: "room", id };
     else if (t === "zone") this.sel = { type: "zone", node: el.dataset.node, kind: el.dataset.kind, slot: Number(el.dataset.slot) };
     else if (t === "line") this.sel = { type: "line", node: el.dataset.node, slot: Number(el.dataset.slot) };
+    if (this.locked) { this.drag = { type: "pan", sx, sy, ox: this.view.ox, oy: this.view.oy }; this._renderAll(); return; }
     this._beginEdit();
     this.drag = { type: "move", start: w, orig: clone(this._selObj()), moved: false };
     this._renderAll();
@@ -578,7 +624,7 @@ class RoomnodeDesignerPanel extends HTMLElement {
       if (!d.moved && Math.hypot(sx - d.sx, sy - d.sy) < 4) return;
       d.moved = true;
       const pts = obj.points, n = pts.length;
-      obj.points[d.i] = this._snap(w, e.altKey, e.shiftKey ? [pts[(d.i + n - 1) % n], pts[(d.i + 1) % n]] : null);
+      obj.points[d.i] = this._snap(w, e.altKey, e.shiftKey ? [pts[(d.i + n - 1) % n], pts[(d.i + 1) % n]] : null, this.sel.type === "room" ? { obj, i: d.i } : null);
     } else if (d.type === "lp") {
       obj[d.i === 0 ? "p1" : "p2"] = this._snap(w, e.altKey, e.shiftKey ? [d.i === 0 ? obj.p2 : obj.p1] : null);
     } else if (d.type === "rot") {
@@ -606,6 +652,7 @@ class RoomnodeDesignerPanel extends HTMLElement {
   }
 
   _onDbl(e) {
+    if (this.locked) return;
     if (this.draw) { this._finishDraw(true); return; }
     const el = e.target.closest("[data-t='vh']");
     if (el) {
@@ -616,6 +663,7 @@ class RoomnodeDesignerPanel extends HTMLElement {
 
   /* ---------- drawing ---------- */
   _setTool(tool) {
+    if (this.locked && tool !== "select") { this._toast(this.t("locked_msg"), true); return; }
     if ((tool === "zone" || tool === "exclusion" || tool === "line") && !this.selNode()) { this._toast(this.t("need_node"), true); return; }
     this.tool = tool; this.pendingArea = tool === "room" ? this.pendingArea : null;
     this.draw = tool === "select" ? null : { points: [], rect: null, down: null, cursor: null };
@@ -773,6 +821,10 @@ class RoomnodeDesignerPanel extends HTMLElement {
     if (tag === "INPUT" || tag === "SELECT" || tag === "TEXTAREA") return;
     if (e.key === " ") { this._space = true; e.preventDefault(); return; }
     const mod = e.ctrlKey || e.metaKey;
+    if (!mod && e.key.toLowerCase() === "l") { this._onAction({ target: { closest: () => ({ dataset: { a: "lock" } }) } }); return; }
+    if (this.locked && ((mod && ["z", "y"].includes(e.key.toLowerCase())) || e.key === "Delete" || e.key === "Backspace")) {
+      e.preventDefault(); this._toast(this.t("locked_msg"), true); return;
+    }
     if (mod && e.key.toLowerCase() === "z") { e.preventDefault(); e.shiftKey ? this._redo() : this._undo(); return; }
     if (mod && e.key.toLowerCase() === "y") { e.preventDefault(); this._redo(); return; }
     if (e.key === "Escape") { this.draw = null; this.tool = "select"; this.pendingArea = null; this.sel = null; this._renderAll(); }
@@ -811,6 +863,15 @@ class RoomnodeDesignerPanel extends HTMLElement {
     }
     if (a === "menu") { this._dom.main.classList.toggle("showleft"); this._hass && this.dispatchEvent(new CustomEvent("hass-toggle-menu", { bubbles: true, composed: true })); return; }
     if (a === "floor") { this.floorId = id; this.sel = null; this.draw = null; this.tool = "select"; this._ensureFloor(); this._fit(); this._renderAll(); return; }
+    if (a === "lock") {
+      this.panels.locked = !this.panels.locked;
+      try { localStorage.setItem("roomnode_designer.panels", JSON.stringify(this.panels)); } catch (_) {}
+      this.draw = null; this.tool = "select"; this.drag = null; this.pendingArea = null; this._closeDim();
+      this._renderAll(); return;
+    }
+    if (this.locked && ["tool", "place", "draw-area", "delete", "flip-dir", "swap-ends", "pull", "undo", "redo", "vdel"].includes(a) && !(a === "tool" && id === "select")) {
+      this._toast(this.t("locked_msg"), true); return;
+    }
     if (a === "tool") { this._setTool(id); return; }
     if (a === "snap") { this.snapOn = !this.snapOn; this._renderAll(); return; }
     if (a === "live") { this.live = !this.live; this._renderAll(); return; }
@@ -837,7 +898,7 @@ class RoomnodeDesignerPanel extends HTMLElement {
 
   _onField(e) {
     const el = e.target.closest("[data-f]"); if (!el) return;
-    const obj = this._selObj(); if (!obj) return;
+    const obj = this._selObj(); if (!obj || this.locked) return;
     const f = el.dataset.f;
     let v = el.type === "checkbox" ? el.checked : el.value;
     const num = () => { const n = parseFloat(String(v).replace(",", ".")); return Number.isFinite(n) ? n : null; };
@@ -917,7 +978,7 @@ class RoomnodeDesignerPanel extends HTMLElement {
     this._dom.title.textContent = this.t("title");
     this._applyPanels(); this._renderFloors(); this._renderStatus(); this._renderTools(); this._renderLeft(); this._renderRight(); this._renderCanvas();
     const editable = this.sel && (this.sel.type === "room" || this.sel.type === "zone");
-    const hint = this.tool === "line" ? this.t("hint_line") : this.tool !== "select" ? this.t("hint_poly") : editable ? this.t("hint_edit") : "";
+    const hint = this.locked ? "🔒 " + this.t("locked_hint") : this.tool === "line" ? this.t("hint_line") : this.tool !== "select" ? this.t("hint_poly") : editable ? this.t("hint_edit") : "";
     this._dom.hint.textContent = hint;
   }
   _scheduleCanvas() {
@@ -946,23 +1007,38 @@ class RoomnodeDesignerPanel extends HTMLElement {
   }
   _renderTools() {
     const hasNode = !!this.selNode();
+    const L = this.locked;
     const tb = (id, icon, label, opts = {}) =>
-      `<button data-a="${opts.action || "tool"}" data-id="${id}" class="${opts.on ?? this.tool === id ? "on" : ""}" ${opts.disabled ? "disabled" : ""} title="${esc(opts.disabled ? this.t("need_node") : label)}">${ICONS[icon]}<span>${esc(label)}</span></button>`;
+      `<button data-a="${opts.action || "tool"}" data-id="${id}" class="${(opts.on ?? this.tool === id ? "on" : "") + (opts.cls ? " " + opts.cls : "")}" ${opts.disabled ? "disabled" : ""} title="${esc(opts.title ?? (opts.disabled ? this.t("need_node") : label))}">${ICONS[icon]}<span>${esc(label)}</span></button>`;
+    const lk = L ? { disabled: true, title: this.t("locked_msg") } : {};
     this._dom.tools.innerHTML =
-      tb("select", "select", this.t("tool_select")) + tb("room", "room", this.t("tool_room")) +
+      tb("select", "select", this.t("tool_select")) + tb("room", "room", this.t("tool_room"), lk) +
       '<div class="sep"></div>' +
-      tb("zone", "zone", this.t("tool_zone"), { disabled: !hasNode }) +
-      tb("exclusion", "excl", this.t("tool_excl"), { disabled: !hasNode }) +
-      tb("line", "line", this.t("tool_line"), { disabled: !hasNode }) +
+      tb("zone", "zone", this.t("tool_zone"), L ? lk : { disabled: !hasNode }) +
+      tb("exclusion", "excl", this.t("tool_excl"), L ? lk : { disabled: !hasNode }) +
+      tb("line", "line", this.t("tool_line"), L ? lk : { disabled: !hasNode }) +
       '<div class="sep"></div>' +
       tb("snap", "snap", this.t("snap"), { action: "snap", on: this.snapOn }) +
       tb("live", "live", this.t("live"), { action: "live", on: this.live }) +
-      tb("undo", "undo", this.t("undo"), { action: "undo", on: false, disabled: !this.undo.length }) +
-      tb("redo", "redo", this.t("redo"), { action: "redo", on: false, disabled: !this.redo.length });
-    this._dom.tools.querySelectorAll("[title]").forEach((b) => { if (b.disabled && b.dataset.a !== "undo" && b.dataset.a !== "redo") b.title = this.t("need_node"); });
+      tb("undo", "undo", this.t("undo"), { action: "undo", on: false, disabled: L || !this.undo.length, title: L ? this.t("locked_msg") : this.t("undo") }) +
+      tb("redo", "redo", this.t("redo"), { action: "redo", on: false, disabled: L || !this.redo.length, title: L ? this.t("locked_msg") : this.t("redo") }) +
+      '<div class="sep"></div>' +
+      tb("lock", L ? "lock" : "unlock", this.t(L ? "unlock" : "lock"), { action: "lock", on: L, cls: "lock", title: this.t(L ? "unlock_title" : "lock_title") });
   }
 
   _renderLeft() {
+    this._renderLeftInner();
+    if (this.locked) this._dom.left.querySelectorAll('[data-a="place"],[data-a="draw-area"]').forEach((b) => { b.disabled = true; b.title = this.t("locked_msg"); });
+  }
+  _renderRight() {
+    this._renderRightInner();
+    if (!this.locked || !this.selNode() && !this._selObj()) return;
+    const R = this._dom.right;
+    R.querySelectorAll("input,select").forEach((el) => { el.disabled = true; });
+    R.querySelectorAll('[data-a="delete"],[data-a="pull"],[data-a="flip-dir"],[data-a="swap-ends"]').forEach((b) => { b.disabled = true; b.title = this.t("locked_msg"); });
+    R.insertAdjacentHTML("afterbegin", `<div class="lockbar">🔒 ${esc(this.t("locked_hint"))}</div>`);
+  }
+  _renderLeftInner() {
     const f = this.fl, sel = this.sel;
     const nodeItems = f.nodes.map((n) => {
       const dev = this.deviceOf(n);
@@ -981,7 +1057,7 @@ class RoomnodeDesignerPanel extends HTMLElement {
     this._dom.left.innerHTML = `<h3>${esc(this.t("nodes"))}</h3>${nodeItems}<h3>${esc(this.t("devices"))}</h3>${devItems}<h3>${esc(this.t("rooms"))}</h3>${roomItems || `<div class="empty">—</div>`}${this.floorId === DEFAULT_FLOOR ? `<div class="hint" style="margin-top:12px">${esc(this.t("floor_hint"))}</div>` : ""}`;
   }
 
-  _renderRight() {
+  _renderRightInner() {
     const R = this._dom.right, s = this.sel, obj = this._selObj();
     if (!obj) { R.innerHTML = `<div class="empty" style="padding-top:20px">${esc(this.t("select_hint"))}</div>`; return; }
     const field = (label, inner, hint) => `<label class="f"><span>${esc(label)}</span>${inner}${hint ? `<div class="hint">${esc(hint)}</div>` : ""}</label>`;
@@ -1040,6 +1116,7 @@ class RoomnodeDesignerPanel extends HTMLElement {
   /* Clickable dimension label; x and y are screen pixels. */
   _dimLabel(x, y, text, kind, i) {
     const w = text.length * 6.6 + 14;
+    if (this.locked) return `<g pointer-events="none"><rect x="${x - w / 2}" y="${y - 12}" width="${w}" height="18" rx="9" fill="var(--card-background-color,#fff)" stroke="var(--secondary-text-color,#757575)" stroke-opacity=".5"/><text x="${x}" y="${y + 1}" font-size="11" text-anchor="middle" fill="var(--primary-text-color,#333)">${text}</text></g>`;
     return `<g data-t="dim" data-kind="${kind}" data-i="${i}" style="cursor:text"><rect x="${x - w / 2}" y="${y - 12}" width="${w}" height="18" rx="9" fill="var(--card-background-color,#fff)" stroke="var(--primary-color,#03a9f4)" stroke-opacity=".6"/><text x="${x}" y="${y + 1}" font-size="11" text-anchor="middle" fill="var(--primary-text-color,#333)" pointer-events="none">${text}</text></g>`;
   }
   _renderCanvas() {
@@ -1099,10 +1176,10 @@ class RoomnodeDesignerPanel extends HTMLElement {
       pts.forEach((p, i) => {
         const q = pts[(i + 1) % pts.length], a = this.w2s(p), b = this.w2s(q);
         out.push(this._dimLabel((a[0] + b[0]) / 2, (a[1] + b[1]) / 2 - 12, `${m2(dist(p, q))} m`, "poly", i));
-        out.push(`<circle data-t="mh" data-i="${i}" cx="${(a[0] + b[0]) / 2}" cy="${(a[1] + b[1]) / 2}" r="5" fill="var(--card-background-color,#fff)" stroke="var(--primary-color,#03a9f4)" stroke-width="2" opacity=".75" style="cursor:copy"/>`);
+        if (!this.locked) out.push(`<circle data-t="mh" data-i="${i}" cx="${(a[0] + b[0]) / 2}" cy="${(a[1] + b[1]) / 2}" r="5" fill="var(--card-background-color,#fff)" stroke="var(--primary-color,#03a9f4)" stroke-width="2" opacity=".75" style="cursor:copy"/>`);
       });
-      const vs = this._vertexSel();
-      pts.forEach((p, i) => { const a = this.w2s(p); out.push(`<rect data-t="vh" data-i="${i}" x="${a[0] - 6}" y="${a[1] - 6}" width="12" height="12" rx="2" fill="${i === vs ? "var(--primary-color,#03a9f4)" : "#fff"}" stroke="var(--primary-color,#03a9f4)" stroke-width="2.5" style="cursor:pointer"/>`); });
+      const vs = this.locked ? null : this._vertexSel();
+      if (!this.locked) pts.forEach((p, i) => { const a = this.w2s(p); out.push(`<rect data-t="vh" data-i="${i}" x="${a[0] - 6}" y="${a[1] - 6}" width="12" height="12" rx="2" fill="${i === vs ? "var(--primary-color,#03a9f4)" : "#fff"}" stroke="var(--primary-color,#03a9f4)" stroke-width="2.5" style="cursor:pointer"/>`); });
       if (vs !== null && pts.length > 3) {
         const a = this.w2s(pts[vs]);
         out.push(`<g data-t="vdel" data-i="${vs}" style="cursor:pointer"><circle cx="${a[0] + 16}" cy="${a[1] - 16}" r="10" fill="var(--error-color,#db4437)" stroke="#fff" stroke-width="2"/><path d="M${a[0] + 12} ${a[1] - 20}l8 8m0-8l-8 8" stroke="#fff" stroke-width="2" stroke-linecap="round"/></g>`);
@@ -1110,7 +1187,7 @@ class RoomnodeDesignerPanel extends HTMLElement {
     }
     if (obj && this.tool === "select" && this.sel.type === "line") {
       { const m = this.w2s([(obj.p1[0] + obj.p2[0]) / 2, (obj.p1[1] + obj.p2[1]) / 2]); out.push(this._dimLabel(m[0], m[1] + 30, `${m2(dist(obj.p1, obj.p2))} m`, "line", 0)); }
-      [obj.p1, obj.p2].forEach((p, i) => { const a = this.w2s(p); out.push(`<rect data-t="lp" data-i="${i}" x="${a[0] - 6}" y="${a[1] - 6}" width="12" height="12" rx="2" fill="#fff" stroke="#ffb300" stroke-width="2.5" style="cursor:pointer"/>`); });
+      if (!this.locked) [obj.p1, obj.p2].forEach((p, i) => { const a = this.w2s(p); out.push(`<rect data-t="lp" data-i="${i}" x="${a[0] - 6}" y="${a[1] - 6}" width="12" height="12" rx="2" fill="#fff" stroke="#ffb300" stroke-width="2.5" style="cursor:pointer"/>`); });
     }
 
     // live targets
@@ -1134,7 +1211,7 @@ class RoomnodeDesignerPanel extends HTMLElement {
         <circle cx="${q[0]}" cy="${q[1]}" r="15" fill="${col}" stroke="#fff" stroke-width="2.5"/>
         <path transform="translate(${q[0] - 9},${q[1] - 9}) scale(.75)" fill="#fff" d="M12 8a4 4 0 100 8 4 4 0 000-8zM4.9 4.9l1.4 1.4a8 8 0 000 11.4l-1.4 1.4a10 10 0 010-14.2zm14.2 0a10 10 0 010 14.2l-1.4-1.4a8 8 0 000-11.4z" pointer-events="none"/></g>`);
       out.push(`<text x="${q[0]}" y="${q[1] + 34}" text-anchor="middle" font-size="12" font-weight="600" fill="var(--primary-text-color,#212121)" paint-order="stroke" stroke="var(--card-background-color,#fff)" stroke-width="3.5" pointer-events="none">${esc(n.name)}${people != null && people !== "unknown" ? ` · ${esc(people)}` : ""}</text>`);
-      if (on) out.push(`<circle data-t="rot" cx="${tip[0]}" cy="${tip[1]}" r="7" fill="#fff" stroke="${col}" stroke-width="3" style="cursor:alias"/>`);
+      if (on && !this.locked) out.push(`<circle data-t="rot" cx="${tip[0]}" cy="${tip[1]}" r="7" fill="#fff" stroke="${col}" stroke-width="3" style="cursor:alias"/>`);
     }
 
     // draft
@@ -1152,6 +1229,20 @@ class RoomnodeDesignerPanel extends HTMLElement {
         if (dr.cursor) { const a = this.w2s(dr.cursor); out.push(`<circle cx="${a[0]}" cy="${a[1]}" r="4" fill="${col}" pointer-events="none"/>`); }
         if (dr.points.length && dr.cursor) out.push(`<text x="${this.w2s(dr.cursor)[0] + 10}" y="${this.w2s(dr.cursor)[1] - 10}" font-size="12" font-weight="600" fill="${col}">${m2(dist(dr.points[dr.points.length - 1], dr.cursor))} m</text>`);
       }
+    }
+
+    // snap marker: what the pointer is currently snapping to
+    const hit = this._snapHit;
+    if (hit && (this.draw || this.drag?.type === "vertex" || this.drag?.type === "lp")) {
+      const c = this.w2s(hit.p), G = "#43a047";
+      for (const ref of [hit.vx, hit.vy]) {
+        if (!ref) continue;
+        const r = this.w2s(ref);
+        out.push(`<line x1="${c[0]}" y1="${c[1]}" x2="${r[0]}" y2="${r[1]}" stroke="${G}" stroke-width="1.5" stroke-dasharray="4 4" pointer-events="none"/>`);
+      }
+      out.push(hit.kind === "vertex"
+        ? `<circle cx="${c[0]}" cy="${c[1]}" r="10" fill="none" stroke="${G}" stroke-width="3" pointer-events="none"/>`
+        : `<rect x="${c[0] - 5}" y="${c[1] - 5}" width="10" height="10" transform="rotate(45 ${c[0]} ${c[1]})" fill="${G}" stroke="#fff" stroke-width="1.5" pointer-events="none"/>`);
     }
 
     // scale bar

@@ -11,7 +11,7 @@ and writes them to those entities.
 
 ## Status
 
-Version 0.1.7. The editor and the coordinate maths were exercised in a browser against a
+Version 0.1.8. The editor and the coordinate maths were exercised in a browser against a
 simulated Home Assistant, and the geometry and validation have unit tests. **It has not yet
 been run inside a real Home Assistant, and the radar axis orientation has not been verified
 on hardware.** See [Before first use](#before-first-use).
@@ -48,14 +48,15 @@ layout, otherwise the Marketplace cannot update it.
    be dragged. To remove a corner, click it and press Delete (or click the red ×, or right-click
    it); a shape keeps at least 3 points. Click a dimension label to type an exact length such as
    `4,5`, `450cm` or `4500mm`: the far end of that edge moves, and when the next edge is
-   perpendicular it slides along so right angles stay right. Corners snap to room corners and a 10 cm
-   grid. Hold **Shift** to keep lines horizontal or vertical: while drawing, the new point lines up with the previous one; while dragging a corner of a room or zone, it snaps to the position that keeps both neighbouring edges straight (a right angle); while moving a whole shape, it moves along one axis. Hold **Alt** to disable snapping.
+   perpendicular it slides along so right angles stay right. Points snap to the corners and walls of other rooms, line up with their corners (dashed green guide) and otherwise snap to a 10 cm grid, so a new room can be drawn flush against its neighbour. Hold **Shift** to keep lines horizontal or vertical: while drawing, the new point lines up with the previous one; while dragging a corner of a room or zone, it snaps to the position that keeps both neighbouring edges straight (a right angle); while moving a whole shape, it moves along one axis. Hold **Alt** to disable snapping.
 5. **Push to device** writes the saved shapes to the roomnode. **Read from device** replaces
    the plan's zones for that node with what the device currently stores.
 6. **Live targets** overlays the radar's tracked targets. Walk through the room: if the dots
    move opposite to you, enable *Mirror left/right* on the node.
 
 Both side panels and the toolbar can be hidden with the buttons in the top corners of the drawing area to make more room; a dot on the right button means something is selected. With the toolbar hidden the keyboard shortcuts below still work. The choice is remembered per browser.
+
+The **lock** button at the right of the toolbar (shortcut **L**) protects the drawing against accidental changes: you can still select a roomnode (or room or zone) to read its details, pan, zoom, show live targets and push a roomnode to its device, but nothing can be moved, drawn, edited or deleted, and "read from device" is disabled. The lock is remembered per browser.
 
 Changes autosave. Ctrl/Cmd+Z undoes, Delete removes the selection, Esc cancels. Scroll to
 zoom, drag the background to pan.
