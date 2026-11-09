@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Roomnode Designer — dev harness</title>
+<style>
+  /* Approximates HA's default light theme variables. */
+  :root{--primary-color:#03a9f4;--primary-background-color:#fafafa;--card-background-color:#fff;--primary-text-color:#212121;--secondary-text-color:#727272;--divider-color:#e0e0e0;--app-header-background-color:#03a9f4;--app-header-text-color:#fff;--error-color:#db4437}
+  body.dark{--primary-background-color:#111111;--card-background-color:#1c1c1c;--primary-text-color:#e1e1e1;--secondary-text-color:#9b9b9b;--divider-color:#2e2e2e;--app-header-background-color:#1c1c1c}
+  html,body{margin:0;height:100%;background:var(--primary-background-color)}
+  roomnode-designer-panel{display:block;height:100vh}
+</style>
+</head>
+<body>
+<roomnode-designer-panel id="p"></roomnode-designer-panel>
+<script src="../custom_components/roomnode_designer/frontend/roomnode-designer-panel.js"></script>
+<script>
+// ---- mock Home Assistant ----
+const q = new URLSearchParams(location.search);
+if (q.get("dark")) document.body.classList.add("dark");
+
+const device = (id, name, area) => ({
+  device_id: id, name, area_id: area,
+  entities: Object.fromEntries([
+    ...["Polygon Zone 1","Polygon Zone 2","Polygon Zone 3","Polygon Zone 4","Polygon Exclusion 1","Polygon Exclusion 2","Entry Line 1","Entry Line 2",
+      "Polygon Zones Enabled","People Count","Reset People Count","Radar Mounting Mode","Radar Default Mounting Height","Radar Default Range","Radar Default Field Of View",
+      "Polygon Zone 1 Presence","Polygon Zone 2 Presence",
+      ...[1,2,3,4,5].flatMap(i=>[`Tracking Target ${i} X`,`Tracking Target ${i} Y`])].map(n=>[n,`${id}.${n.toLowerCase().replace(/ /g,"_")}`]),
+  ]),
+});
+const devices = [device("kantoor","Room node","kantoor"), device("keuken","Room node keuken","keuken")];
+const floors = [{floor_id:"begane",name:"Begane grond",level:0},{floor_id:"eerste",name:"Eerste verdieping",level:1}];
+const areas = [
+  {area_id:"kantoor",name:"Kantoor",floor_id:"eerste"},{area_id:"slaapkamer",name:"Slaapkamer",floor_id:"eerste"},
+  {area_id:"keuken",name:"Keuken",floor_id:"begane"},{area_id:"woonkamer",name:"Woonkamer",floor_id:"begane"},
+];
+const states = {};
+for (const d of devices) {
+  for (const [name, id] of Object.entries(d.entities)) states[id] = {state:"unknown",attributes:{}};
+  const s = (n,v,a={}) => states[d.entities[n]] = {state:String(v),attributes:a};
+  s("Radar Mounting Mode","wall"); s("Radar Default Mounting Height",1500); s("Radar Default Range",6000); s("Radar Default Field Of View",120);
+  s("Polygon Zones Enabled","on"); s("People Count",1);
+}
+let store = {model: JSON.parse(localStorage.getItem("rd-dev-model") || '{"floors":{}}'), revision: 0};
+const hass = {
+  language:"nl", states,
+  async callWS(msg){
+    await new Promise(r=>setTimeout(r,60));
+    switch(msg.type){
+      case "roomnode_designer/load": return {model:store.model, revision:store.revision, devices};
+      case "roomnode_designer/save":
+        if (msg.revision !== store.revision) throw {code:"conflict", message:"conflict"};
+        store.model = msg.model; store.revision++; localStorage.setItem("rd-dev-model", JSON.stringify(msg.model)); window.__saves=(window.__saves||0)+1; return {revision:store.revision};
+      case "roomnode_designer/push": return {sent:{"Polygon Zone 1":"0:500;2000:500;2000:3000;0:3000","Entry Line 1":"-500:100;500:100;left"}};
+      case "roomnode_designer/pull": return {zones:[],lines:[]};
+      case "config/floor_registry/list": return floors;
+      case "config/area_registry/list": return areas;
+    }
+    throw new Error("unmocked "+msg.type);
+  },
+  callService(d,s,data){ console.log("service",d,s,data); },
+};
+const p = document.getElementById("p");
+p.hass = hass; p.narrow = false;
+// live targets: orbit around the first node
+setInterval(() => {
+  const t = Date.now()/1000;
+  for (const d of devices) {
+    const set = (n,v) => states[d.entities[n]] = {state:v.toFixed(2),attributes:{unit_of_measurement:"m"}};
+    set("Tracking Target 1 X", Math.sin(t)*1.5); set("Tracking Target 1 Y", 2.5+Math.cos(t)*1);
+    states[d.entities["Polygon Zone 1 Presence"]] = {state: Math.sin(t)>0 ? "on":"off", attributes:{}};
+  }
+  p.hass = {...hass, states};
+}, 250);
+window.__p = p;
+</script>
+</body>
+</html>

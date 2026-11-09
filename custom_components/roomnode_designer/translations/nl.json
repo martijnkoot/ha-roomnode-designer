@@ -1,0 +1,13 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Roomnode Designer",
+        "description": "Voegt een plattegrondeditor toe aan de zijbalk om roomnodes te plaatsen en hun radarzones in te stellen."
+      }
+    },
+    "abort": {
+      "single_instance_allowed": "Roomnode Designer is al ingesteld."
+    }
+  }
+}

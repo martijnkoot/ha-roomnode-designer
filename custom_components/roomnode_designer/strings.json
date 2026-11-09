@@ -1,0 +1,13 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Roomnode Designer",
+        "description": "Adds a floor plan editor to the sidebar for placing roomnodes and configuring their radar zones."
+      }
+    },
+    "abort": {
+      "single_instance_allowed": "Roomnode Designer is already set up."
+    }
+  }
+}
