@@ -99,3 +99,7 @@ have not been checked against the new Marketplace.
 
 The entity names and string formats this integration depends on come from the Jarvis roomnode
 firmware. Change them there and here together.
+
+## License
+
+MIT, see [LICENSE](LICENSE).
