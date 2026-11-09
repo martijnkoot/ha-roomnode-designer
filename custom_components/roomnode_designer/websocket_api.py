@@ -113,7 +113,11 @@ def ws_pull(hass: HomeAssistant, connection: websocket_api.ActiveConnection, msg
 
 
 @websocket_api.websocket_command(
-    {vol.Required("type"): f"{DOMAIN}/push_radar", vol.Required("node_id"): str}
+    {
+        vol.Required("type"): f"{DOMAIN}/push_radar",
+        vol.Required("node_id"): str,
+        vol.Optional("switch_mode", default=False): bool,
+    }
 )
 @websocket_api.require_admin
 @websocket_api.async_response
@@ -125,7 +129,7 @@ async def ws_push_radar(hass: HomeAssistant, connection: websocket_api.ActiveCon
         connection.send_error(msg["id"], "not_found", "Node not found. Save the floor plan first.")
         return
     try:
-        result = await async_push_radar(hass, node)
+        result = await async_push_radar(hass, node, msg["switch_mode"])
     except HomeAssistantError as err:
         connection.send_error(msg["id"], "push_failed", str(err))
         return

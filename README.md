@@ -78,9 +78,13 @@ rules before sending:
 | Ceiling (`top`) | 0.1 - 4 m | 0° to 360°, start < end | A slice of the circle around the node; 0° is the heading arrow. 0-360 is the full circle, a smaller range limits detection to a slice, for example a doorway. |
 
 So the angles are useful in ceiling mode too, but mean something different from wall mode.
-The integration never changes the radar's installation mode: if the plan and the radar disagree,
-sending is disabled and you are told which one to change. The installation height and
-installation angle of the radar are not written.
+The mounting you choose in the plan decides the radar's installation mode (Wall = `side`,
+Ceiling = `top`). When the radar is in another mode, the button changes to "Switch radar & send
+settings". After a confirmation the integration sets the mode through the device's
+`Tracking Radar Installation Mode` select, waits until the radar confirms it (no restart is
+needed), then writes distance and angles and replaces the zones on the device with the zones of
+the plan. If the radar does not confirm within 15 seconds nothing else is written. The
+installation height and installation angle of the radar are not written.
 
 ## Before first use
 

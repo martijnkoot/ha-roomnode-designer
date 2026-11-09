@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import asyncio
 from typing import Any
 
 from homeassistant.core import HomeAssistant
@@ -166,8 +167,46 @@ def pull_radar(hass: HomeAssistant, node: dict[str, Any]) -> dict[str, Any]:
     return result
 
 
-async def async_push_radar(hass: HomeAssistant, node: dict[str, Any]) -> dict[str, Any]:
-    """Write detection distance and start/end angle to the radar, validated like the firmware."""
+MODE_SWITCH_TIMEOUT = 15.0
+
+
+async def _switch_mode(hass: HomeAssistant, entity_id: str, wanted: str) -> None:
+    """Set the radar installation mode and wait until the radar confirms it.
+
+    The firmware publishes the mode only after the radar acknowledged the command
+    (and retries twice), so the state change is the confirmation; no restart is needed.
+    """
+    if entity_id.split(".")[0] != "select":
+        raise HomeAssistantError(
+            "The installation mode of this device is read-only (fixed in the firmware); "
+            "change it in the ESPHome configuration."
+        )
+    state = hass.states.get(entity_id)
+    options = state.attributes.get("options") if state is not None else None
+    if options and wanted not in options:
+        raise HomeAssistantError(f"The device does not offer the installation mode '{wanted}'")
+    await hass.services.async_call(
+        "select", "select_option", {"entity_id": entity_id, "option": wanted}, blocking=True
+    )
+    waited = 0.0
+    while waited < MODE_SWITCH_TIMEOUT:
+        if _radar_mode(hass, entity_id) == wanted:
+            return
+        await asyncio.sleep(0.5)
+        waited += 0.5
+    raise HomeAssistantError(
+        f"The radar did not confirm installation mode '{wanted}' within {MODE_SWITCH_TIMEOUT:g} s. "
+        "Nothing else was written; check the device and try again."
+    )
+
+
+async def async_push_radar(
+    hass: HomeAssistant, node: dict[str, Any], switch_mode: bool = False
+) -> dict[str, Any]:
+    """Write detection distance and start/end angle to the radar, validated like the firmware.
+
+    With ``switch_mode`` the installation mode is first changed to match the plan's mounting.
+    """
     if not node.get("device_id"):
         raise HomeAssistantError("This node is not linked to a device")
     ent = entity_map(hass, node["device_id"])
@@ -180,7 +219,17 @@ async def async_push_radar(hass: HomeAssistant, node: dict[str, Any]) -> dict[st
     if mode is None:
         raise HomeAssistantError("The radar installation mode is not known yet (device offline?)")
     wanted = mode_for_mounting(node.get("mounting", "wall"))
-    if wanted != mode:
+    switched = False
+    if wanted != mode and switch_mode:
+        # Validate the plan's values for the new mode first, so nothing changes if they are invalid.
+        errors = validate_detection(
+            wanted, round(float(node["range"]) / 1000, 1), round(float(node["angle_start"]), 1), round(float(node["angle_end"]), 1)
+        )
+        if errors:
+            raise HomeAssistantError("; ".join(errors))
+        await _switch_mode(hass, ent[NAME_RADAR_MODE], wanted)
+        mode, switched = wanted, True
+    elif wanted != mode:
         raise HomeAssistantError(
             f"The radar is in '{mode}' mode but this roomnode is set to "
             f"'{node.get('mounting', 'wall')}' in the plan. Change the installation mode of the radar "
@@ -208,10 +257,10 @@ async def async_push_radar(hass: HomeAssistant, node: dict[str, Any]) -> dict[st
     sent: dict[str, float] = {}
     for key in ["distance", *write_order(cur_end, start)]:
         name, shown, needed, value = plan[key]
-        if not needed:
+        if not needed and not switched:
             continue
         await hass.services.async_call(
             "number", "set_value", {"entity_id": ent[name], "value": round(value, 3)}, blocking=True
         )
         sent[key] = shown
-    return {"mode": mode, "sent": sent}
+    return {"mode": mode, "sent": sent, "switched": switched}

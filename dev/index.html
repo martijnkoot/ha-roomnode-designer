@@ -57,7 +57,7 @@ const hass = {
         store.model = msg.model; store.revision++; localStorage.setItem("rd-dev-model", JSON.stringify(msg.model)); window.__saves=(window.__saves||0)+1; return {revision:store.revision};
       case "roomnode_designer/push": return {sent:{"Polygon Zone 1":"0:500;2000:500;2000:3000;0:3000","Entry Line 1":"-500:100;500:100;left"}};
       case "roomnode_designer/pull": return {zones:[],lines:[]};
-      case "roomnode_designer/push_radar": window.__radarPush=(window.__radarPush||0)+1; return {mode:"side", sent:{start:-30,end:60}};
+      case "roomnode_designer/push_radar": window.__radarPush=(window.__radarPush||0)+1; window.__lastRadarMsg=msg; return {mode:msg.switch_mode?"top":"side", sent:{start:-30,end:60}, switched:!!msg.switch_mode};
       case "roomnode_designer/pull_radar": return {mode:"side", mounting:"wall", angle_start:-45, angle_end:30, range:4500};
       case "config/floor_registry/list": return floors;
       case "config/area_registry/list": return areas;
