@@ -34,7 +34,7 @@ const TEXT = {
     hint_line: "Click two points. Then flip the direction in the panel if needed.",
     slots_full: "All slots of this type are in use.", slot_taken: "That slot is already in use.", auto_floor: "Default floor",
     floor_hint: "Using a default floor. Add floors under Settings → Areas to separate levels.",
-    cover_note: "Approximate radar coverage", targets: "targets", menu: "Menu", plan: "Plan", panel: "Panel",
+    cover_note: "Approximate radar coverage", hide_left: "Hide lists", show_left: "Show lists", hide_right: "Hide details", show_right: "Show details", targets: "targets", menu: "Menu", plan: "Plan", panel: "Panel",
   },
   nl: {
     title: "Roomnodes", floor: "Verdieping", nodes: "Roomnodes op deze verdieping", devices: "Beschikbare roomnodes",
@@ -58,7 +58,7 @@ const TEXT = {
     hint_line: "Klik twee punten. Draai daarna zo nodig de richting om in het paneel.",
     slots_full: "Alle slots van dit type zijn in gebruik.", slot_taken: "Dat slot is al in gebruik.", auto_floor: "Standaardverdieping",
     floor_hint: "Standaardverdieping in gebruik. Voeg verdiepingen toe onder Instellingen → Gebieden.",
-    cover_note: "Geschat radarbereik", targets: "doelen", menu: "Menu", plan: "Plattegrond", panel: "Paneel",
+    cover_note: "Geschat radarbereik", hide_left: "Lijsten verbergen", show_left: "Lijsten tonen", hide_right: "Details verbergen", show_right: "Details tonen", targets: "doelen", menu: "Menu", plan: "Plattegrond", panel: "Paneel",
   },
 };
 
@@ -135,6 +135,12 @@ header h1{font-size:20px;font-weight:400;margin:0;white-space:nowrap}
 .status button{background:#fff;color:var(--rd-accent);border:0;border-radius:4px;padding:3px 8px;cursor:pointer;font:inherit}
 .status.bad{color:#ffd0cc;font-weight:500}
 main{display:grid;grid-template-columns:300px 1fr 340px;min-height:0}
+aside.left{grid-column:1}.canvas{grid-column:2}aside.right{grid-column:3}
+main.hide-left{grid-template-columns:0 1fr 340px}main.hide-right{grid-template-columns:300px 1fr 0}main.hide-left.hide-right{grid-template-columns:0 1fr 0}
+main.hide-left aside.left,main.hide-right aside.right{display:none}
+.edge{position:absolute;top:12px;z-index:2;width:38px;height:38px;border:0;border-radius:8px;background:var(--rd-card);color:var(--rd-text);box-shadow:0 2px 8px rgba(0,0,0,.22);cursor:pointer;display:flex;align-items:center;justify-content:center}
+.edge:hover{background:var(--rd-bg)}.edge svg{width:22px;height:22px;pointer-events:none}.edge.l{left:12px}.edge.r{right:12px}
+.edge .badge{position:absolute;top:6px;right:6px;width:9px;height:9px;border-radius:50%;background:var(--rd-accent);display:none}.edge.has .badge{display:block}
 aside{background:var(--rd-card);overflow:auto;padding:12px 14px;min-height:0}
 aside.left{border-right:1px solid var(--rd-line)}
 aside.right{border-left:1px solid var(--rd-line)}
@@ -170,7 +176,7 @@ svg.pan{cursor:grab}svg.draw{cursor:crosshair}
 .toast{position:absolute;left:50%;bottom:50px;transform:translateX(-50%);background:#323232;color:#fff;padding:10px 16px;border-radius:8px;z-index:5;max-width:80%;box-shadow:0 3px 10px rgba(0,0,0,.4)}.toast.err{background:var(--rd-err)}
 .toast[hidden]{display:none}
 .toggle-side{display:none}
-@media (max-width:1100px){main{grid-template-columns:1fr;grid-template-rows:1fr auto}aside.left{display:none}main.showleft aside.left{display:block;position:absolute;z-index:4;left:0;top:56px;bottom:0;width:min(320px,90vw)}aside.right{border-left:0;border-top:1px solid var(--rd-line);max-height:42vh}.menu{display:block}.toggle-side{display:inline-block}.tools button{min-width:52px;padding:5px 7px}.tools button span{display:none}}
+@media (max-width:1100px){main,main.hide-left,main.hide-right,main.hide-left.hide-right{grid-template-columns:1fr;grid-template-rows:1fr auto}aside.left,.canvas,aside.right{grid-column:1}aside.left{display:none}main.showleft aside.left{display:block;position:absolute;z-index:4;left:0;top:56px;bottom:0;width:min(320px,90vw)}aside.right{border-left:0;border-top:1px solid var(--rd-line);max-height:42vh}.menu{display:block}.toggle-side{display:inline-block}.tools button{min-width:52px;padding:5px 7px}.tools button span{display:none}}
 `;
 
 const ICONS = {
@@ -267,6 +273,8 @@ class RoomnodeDesignerPanel extends HTMLElement {
         <section class="canvas" id="canvas">
           <div class="tools" id="tools"></div>
           <svg id="svg" xmlns="http://www.w3.org/2000/svg"></svg>
+          <button class="edge l" data-a="toggle-left" id="edgeL"><svg viewBox="0 0 24 24"><path fill="currentColor" d="M3 3h18v18H3V3zm6 2H5v14h4V5zm2 0v14h8V5h-8z"/></svg></button>
+          <button class="edge r" data-a="toggle-right" id="edgeR"><svg viewBox="0 0 24 24"><path fill="currentColor" d="M3 3h18v18H3V3zm12 2H5v14h10V5zm2 0v14h2V5h-2z"/></svg><span class="badge"></span></button>
           <div class="zoom"><button data-a="zoom-in">+</button><button data-a="zoom-out">−</button><button data-a="fit" title="">⤢</button></div>
           <div class="bar"><span id="hint"></span><span id="coords"></span></div>
           <div class="toast" id="toast" hidden></div>
@@ -286,8 +294,13 @@ class RoomnodeDesignerPanel extends HTMLElement {
     d.svg.addEventListener("dblclick", (e) => this._onDbl(e));
     d.svg.addEventListener("wheel", (e) => this._onWheel(e), { passive: false });
     d.svg.addEventListener("contextmenu", (e) => e.preventDefault());
+    this.panels = { hideLeft: false, hideRight: false };
+    try { Object.assign(this.panels, JSON.parse(localStorage.getItem("roomnode_designer.panels") || "{}")); } catch (_) {}
+    this._applyPanels();
     this._ro = new ResizeObserver(() => {
       const r = d.canvas.getBoundingClientRect();
+      // Keep the drawing anchored on the centre when a side panel is opened or closed.
+      if (this.view.w > 0 && r.width > 0 && !this._needFit) this.view.ox += (r.width - this.view.w) / 2;
       this.view.w = r.width; this.view.h = r.height;
       if (this._needFit && r.width > 0) { this._needFit = false; this._fit(); }
       this._renderCanvas();
@@ -661,6 +674,13 @@ class RoomnodeDesignerPanel extends HTMLElement {
   async _onAction(e) {
     const el = e.target.closest("[data-a]"); if (!el) return;
     const a = el.dataset.a, id = el.dataset.id;
+    if (a === "toggle-left" || a === "toggle-right") {
+      if (a === "toggle-left" && matchMedia("(max-width:1100px)").matches) { this._dom.main.classList.toggle("showleft"); return; }
+      const key = a === "toggle-left" ? "hideLeft" : "hideRight";
+      this.panels[key] = !this.panels[key];
+      try { localStorage.setItem("roomnode_designer.panels", JSON.stringify(this.panels)); } catch (_) {}
+      this._applyPanels(); return;
+    }
     if (a === "menu") { this._dom.main.classList.toggle("showleft"); this._hass && this.dispatchEvent(new CustomEvent("hass-toggle-menu", { bubbles: true, composed: true })); return; }
     if (a === "floor") { this.floorId = id; this.sel = null; this.draw = null; this.tool = "select"; this._ensureFloor(); this._fit(); this._renderAll(); return; }
     if (a === "tool") { this._setTool(id); return; }
@@ -763,13 +783,23 @@ class RoomnodeDesignerPanel extends HTMLElement {
   _renderAll() {
     if (!this._dom) return;
     this._dom.title.textContent = this.t("title");
-    this._renderFloors(); this._renderStatus(); this._renderTools(); this._renderLeft(); this._renderRight(); this._renderCanvas();
+    this._applyPanels(); this._renderFloors(); this._renderStatus(); this._renderTools(); this._renderLeft(); this._renderRight(); this._renderCanvas();
     const hint = this.tool === "line" ? this.t("hint_line") : this.tool !== "select" ? this.t("hint_poly") : "";
     this._dom.hint.textContent = hint;
   }
   _scheduleCanvas() {
     if (this._raf) return;
     this._raf = requestAnimationFrame(() => { this._raf = null; this._renderCanvas(); });
+  }
+  _applyPanels() {
+    const d = this._dom, p = this.panels;
+    d.main.classList.toggle("hide-left", !!p.hideLeft);
+    d.main.classList.toggle("hide-right", !!p.hideRight);
+    const l = this.shadowRoot.getElementById("edgeL"), r = this.shadowRoot.getElementById("edgeR");
+    l.title = this.t(p.hideLeft ? "show_left" : "hide_left");
+    r.title = this.t(p.hideRight ? "show_right" : "hide_right");
+    // A dot on the closed right panel button tells you something is selected.
+    r.classList.toggle("has", !!p.hideRight && !!this.sel);
   }
   _renderFloors() {
     this._dom.floors.innerHTML = this.floors.map((f) => `<button data-a="floor" data-id="${esc(f.floor_id)}" class="${f.floor_id === this.floorId ? "on" : ""}">${esc(f.name)}</button>`).join("");

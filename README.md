@@ -11,7 +11,7 @@ and writes them to those entities.
 
 ## Status
 
-Version 0.1.1. The editor and the coordinate maths were exercised in a browser against a
+Version 0.1.2. The editor and the coordinate maths were exercised in a browser against a
 simulated Home Assistant, and the geometry and validation have unit tests. **It has not yet
 been run inside a real Home Assistant, and the radar axis orientation has not been verified
 on hardware.** See [Before first use](#before-first-use).
@@ -51,6 +51,8 @@ layout, otherwise the Marketplace cannot update it.
    the plan's zones for that node with what the device currently stores.
 6. **Live targets** overlays the radar's tracked targets. Walk through the room: if the dots
    move opposite to you, enable *Mirror left/right* on the node.
+
+Both side panels can be collapsed with the buttons in the top corners of the drawing area to make more room; a dot on the right button means something is selected. The choice is remembered per browser.
 
 Changes autosave. Ctrl/Cmd+Z undoes, Delete removes the selection, Esc cancels. Scroll to
 zoom, drag the background to pan.
