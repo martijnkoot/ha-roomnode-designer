@@ -30,8 +30,8 @@ const TEXT = {
     in_side: "Counts as “in” when crossing to the", left: "left", right: "right", flip_dir: "Flip direction", swap_ends: "Swap ends",
     outside: "point(s) outside the radar range", area: "Home Assistant area", none: "— none —", delete: "Delete",
     room: "Room", select_hint: "Select a roomnode, room or zone, or place a roomnode from the list.",
-    hint_poly: "Drag for a rectangle, or click points. Double-click or Enter to finish, Esc to cancel.",
-    hint_line: "Click two points. Then flip the direction in the panel if needed.",
+    hint_poly: "Drag for a rectangle, or click points. Hold Shift for straight lines, Alt for no snapping. Double-click or Enter to finish, Esc to cancel.",
+    hint_line: "Click two points (Shift = straight). Then flip the direction in the panel if needed.",
     slots_full: "All slots of this type are in use.", slot_taken: "That slot is already in use.", auto_floor: "Default floor",
     floor_hint: "Using a default floor. Add floors under Settings → Areas to separate levels.",
     cover_note: "Approximate radar coverage", hide_left: "Hide lists", show_left: "Show lists", hide_right: "Hide details", show_right: "Show details", targets: "targets", menu: "Menu", plan: "Plan", panel: "Panel",
@@ -54,8 +54,8 @@ const TEXT = {
     in_side: "Telt als “binnen” bij oversteken naar", left: "links", right: "rechts", flip_dir: "Richting omdraaien", swap_ends: "Uiteinden wisselen",
     outside: "punt(en) buiten radarbereik", area: "Home Assistant-gebied", none: "— geen —", delete: "Verwijderen",
     room: "Kamer", select_hint: "Selecteer een roomnode, kamer of zone, of plaats een roomnode uit de lijst.",
-    hint_poly: "Sleep voor een rechthoek, of klik punten. Dubbelklik of Enter om af te sluiten, Esc om te annuleren.",
-    hint_line: "Klik twee punten. Draai daarna zo nodig de richting om in het paneel.",
+    hint_poly: "Sleep voor een rechthoek, of klik punten. Houd Shift ingedrukt voor rechte lijnen, Alt voor geen magneet. Dubbelklik of Enter om af te sluiten, Esc om te annuleren.",
+    hint_line: "Klik twee punten (Shift = recht). Draai daarna zo nodig de richting om in het paneel.",
     slots_full: "Alle slots van dit type zijn in gebruik.", slot_taken: "Dat slot is al in gebruik.", auto_floor: "Standaardverdieping",
     floor_hint: "Standaardverdieping in gebruik. Voeg verdiepingen toe onder Instellingen → Gebieden.",
     cover_note: "Geschat radarbereik", hide_left: "Lijsten verbergen", show_left: "Lijsten tonen", hide_right: "Details verbergen", show_right: "Details tonen", targets: "doelen", menu: "Menu", plan: "Plattegrond", panel: "Paneel",
@@ -472,8 +472,22 @@ class RoomnodeDesignerPanel extends HTMLElement {
   }
 
   /* ---------- snapping ---------- */
-  _snap(w, shift) {
-    if (!this.snapOn || shift) return [Math.round(w[0]), Math.round(w[1])];
+  /* noSnap (Alt): free placement. ortho (Shift): array of anchor points; the result is
+     forced onto the horizontal/vertical through one anchor, or, with two anchors (the
+     neighbours of a polygon corner), onto the corner that keeps both edges axis-aligned. */
+  _snap(w, noSnap, ortho) {
+    const p = this._snapFree(w, noSnap);
+    if (!ortho || !ortho.length) return p;
+    if (ortho.length === 1) {
+      const a = ortho[0];
+      return Math.abs(p[0] - a[0]) >= Math.abs(p[1] - a[1]) ? [p[0], a[1]] : [a[0], p[1]];
+    }
+    const [a, b] = ortho;
+    const c1 = [a[0], b[1]], c2 = [b[0], a[1]];
+    return dist(c1, p) <= dist(c2, p) ? c1 : c2;
+  }
+  _snapFree(w, noSnap) {
+    if (!this.snapOn || noSnap) return [Math.round(w[0]), Math.round(w[1])];
     const near = 10 / this.view.s;
     let best = null, bd = near;
     for (const r of this.fl.rooms) for (const p of r.points) { const d = dist(p, w); if (d < bd) { bd = d; best = p; } }
@@ -533,19 +547,22 @@ class RoomnodeDesignerPanel extends HTMLElement {
     if (d.type === "move") {
       d.moved = true;
       const dx = w[0] - d.start[0], dy = w[1] - d.start[1];
-      const g = this.snapOn && !e.shiftKey ? 100 : 1;
-      const sdx = Math.round(dx / g) * g, sdy = Math.round(dy / g) * g;
+      const g = this.snapOn && !e.altKey ? 100 : 1;
+      let sdx = Math.round(dx / g) * g, sdy = Math.round(dy / g) * g;
+      if (e.shiftKey) { if (Math.abs(sdx) >= Math.abs(sdy)) sdy = 0; else sdx = 0; }
       if (this.sel.type === "node") { obj.x = d.orig.x + sdx; obj.y = d.orig.y + sdy; }
       else if (this.sel.type === "line") { obj.p1 = [d.orig.p1[0] + sdx, d.orig.p1[1] + sdy]; obj.p2 = [d.orig.p2[0] + sdx, d.orig.p2[1] + sdy]; }
       else obj.points = d.orig.points.map((p) => [p[0] + sdx, p[1] + sdy]);
     } else if (d.type === "vertex") {
-      obj.points[d.i] = this._snap(w, e.shiftKey);
+      const pts = obj.points, n = pts.length;
+      obj.points[d.i] = this._snap(w, e.altKey, e.shiftKey ? [pts[(d.i + n - 1) % n], pts[(d.i + 1) % n]] : null);
     } else if (d.type === "lp") {
-      obj[d.i === 0 ? "p1" : "p2"] = this._snap(w, e.shiftKey);
+      obj[d.i === 0 ? "p1" : "p2"] = this._snap(w, e.altKey, e.shiftKey ? [d.i === 0 ? obj.p2 : obj.p1] : null);
     } else if (d.type === "rot") {
       const node = obj;
       let a = (Math.atan2(w[0] - node.x, w[1] - node.y) * 180) / Math.PI;
-      if (this.snapOn && !e.shiftKey) a = Math.round(a / 5) * 5;
+      if (e.shiftKey) a = Math.round(a / 90) * 90;
+      else if (this.snapOn && !e.altKey) a = Math.round(a / 5) * 5;
       node.rotation = Math.round(((a % 360) + 360) % 360);
     }
     this._renderCanvas();
@@ -576,14 +593,18 @@ class RoomnodeDesignerPanel extends HTMLElement {
     this.draw = tool === "select" ? null : { points: [], rect: null, down: null, cursor: null };
     this._renderAll();
   }
+  _drawAnchor(e) {
+    const pts = this.draw?.points || [];
+    return e.shiftKey && pts.length ? [pts[pts.length - 1]] : null;
+  }
   _drawDown(e, sx, sy, w) {
-    const sw = this._snap(w, e.shiftKey);
+    const sw = this._snap(w, e.altKey, this._drawAnchor(e));
     if (!this.draw) this.draw = { points: [], rect: null, down: null };
     this.draw.down = { sx, sy, w: sw };
     this.draw.cursor = sw;
   }
   _drawMove(e, sx, sy, w) {
-    const dr = this.draw, sw = this._snap(w, e.shiftKey);
+    const dr = this.draw, sw = this._snap(w, e.altKey, this._drawAnchor(e));
     dr.cursor = sw;
     if (dr.down && dr.points.length === 0 && this.tool !== "line" && Math.hypot(sx - dr.down.sx, sy - dr.down.sy) > 6) {
       dr.rect = [dr.down.w, sw];
@@ -603,13 +624,14 @@ class RoomnodeDesignerPanel extends HTMLElement {
       this._renderCanvas(); return;
     }
     if (Math.hypot(sx - down.sx, sy - down.sy) > 6) return;
-    const p = this._snap(this.s2w(sx, sy), e.shiftKey);
+    const raw = this._snap(this.s2w(sx, sy), e.altKey);
+    const p = this._snap(this.s2w(sx, sy), e.altKey, this._drawAnchor(e));
     if (this.tool === "line") {
       dr.points.push(p);
       if (dr.points.length === 2) { this._finishDraw(false); return; }
     } else {
       const first = dr.points[0];
-      if (dr.points.length >= 3 && first && Math.hypot(...[0, 1].map((k) => this.w2s(first)[k] - this.w2s(p)[k])) < 12) { this._finishDraw(false); return; }
+      if (dr.points.length >= 3 && first && Math.hypot(...[0, 1].map((k) => this.w2s(first)[k] - this.w2s(raw)[k])) < 12) { this._finishDraw(false); return; }
       dr.points.push(p);
     }
     this._renderCanvas();

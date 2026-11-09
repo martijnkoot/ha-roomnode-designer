@@ -11,7 +11,7 @@ and writes them to those entities.
 
 ## Status
 
-Version 0.1.2. The editor and the coordinate maths were exercised in a browser against a
+Version 0.1.3. The editor and the coordinate maths were exercised in a browser against a
 simulated Home Assistant, and the geometry and validation have unit tests. **It has not yet
 been run inside a real Home Assistant, and the radar axis orientation has not been verified
 on hardware.** See [Before first use](#before-first-use).
@@ -46,7 +46,7 @@ layout, otherwise the Marketplace cannot update it.
 4. **Zones**: with a roomnode selected, use *Detection zone*, *Exclusion zone* or *Entry
    line*. Drag a rectangle or click points. Corners and edge midpoints of a selected shape can
    be dragged; double-click a corner to delete it. Corners snap to room corners and a 10 cm
-   grid; hold Shift to disable snapping.
+   grid. Hold **Shift** to keep lines horizontal or vertical: while drawing, the new point lines up with the previous one; while dragging a corner of a room or zone, it snaps to the position that keeps both neighbouring edges straight (a right angle); while moving a whole shape, it moves along one axis. Hold **Alt** to disable snapping.
 5. **Push to device** writes the saved shapes to the roomnode. **Read from device** replaces
    the plan's zones for that node with what the device currently stores.
 6. **Live targets** overlays the radar's tracked targets. Walk through the room: if the dots
