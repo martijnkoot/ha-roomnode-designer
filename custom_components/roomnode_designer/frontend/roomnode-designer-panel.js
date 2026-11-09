@@ -955,7 +955,7 @@ class RoomnodeDesignerPanel extends HTMLElement {
       obj.slot = n;
       if (this.sel.type === "line") this.sel.slot = n; else this.sel.slot = n;
     } else if (f === "in_side") obj.in_side = v;
-    this._changed(); this._renderAll();
+    this._changed(); this._patchOnce = el.nodeName === "INPUT" && el.type !== "checkbox"; this._renderAll(); this._patchOnce = false;
   }
 
   _hasRadar(dev) {
@@ -1086,7 +1086,36 @@ class RoomnodeDesignerPanel extends HTMLElement {
     this._renderLeftInner();
     if (this.locked) this._dom.left.querySelectorAll('[data-a="place"],[data-a="draw-area"]').forEach((b) => { b.disabled = true; b.title = this.t("locked_msg"); });
   }
+  /* Re-render the inspector without replacing the element being edited, so the number spinners
+     keep working (and focus stays) while the plan autosaves after every step. */
+  _patchRight() {
+    const R = this._dom.right, tmp = document.createElement("div");
+    this._dom.right = tmp;
+    try { this._renderRightInner(); } finally { this._dom.right = R; }
+    const same = (a, b) => a.nodeType === b.nodeType && a.nodeName === b.nodeName && a.childNodes.length === b.childNodes.length &&
+      [...a.childNodes].every((c, i) => same(c, b.childNodes[i]));
+    const kids = (a, b) => a.childNodes.length === b.childNodes.length && [...a.childNodes].every((c, i) => same(c, b.childNodes[i]));
+    if (!kids(R, tmp)) {
+      // The layout changed (a warning appeared or went away): rebuild, but keep the field being edited focused.
+      const f = this.shadowRoot.activeElement?.dataset?.f;
+      R.innerHTML = tmp.innerHTML;
+      const back = f && R.querySelector(`[data-f="${f}"]`);
+      if (back) { back.focus(); try { back.setSelectionRange(back.value.length, back.value.length); } catch (e) { /* number inputs */ } }
+      return;
+    }
+    const sync = (a, b) => {
+      if (a.nodeType === 3) { if (a.data !== b.data) a.data = b.data; return; }
+      if (a.nodeType !== 1) return;
+      for (const at of [...a.attributes]) if (!b.hasAttribute(at.name)) a.removeAttribute(at.name);
+      for (const at of [...b.attributes]) if (a.getAttribute(at.name) !== at.value) a.setAttribute(at.name, at.value);
+      if (a.nodeName === "INPUT") { if (a.type === "checkbox") a.checked = b.hasAttribute("checked"); else if (a.value !== b.getAttribute("value")) a.value = b.getAttribute("value") ?? ""; }
+      if (a.nodeName === "SELECT") a.value = b.querySelector("option[selected]")?.value ?? a.value;
+      [...a.childNodes].forEach((c, i) => sync(c, b.childNodes[i]));
+    };
+    [...R.childNodes].forEach((c, i) => sync(c, tmp.childNodes[i]));
+  }
   _renderRight() {
+    if (this._patchOnce) { this._patchOnce = false; this._patchRight(); } else
     this._renderRightInner();
     if (!this.locked || !this.selNode() && !this._selObj()) return;
     const R = this._dom.right;
