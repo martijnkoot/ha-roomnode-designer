@@ -11,7 +11,7 @@ from homeassistant.core import HomeAssistant, callback
 from homeassistant.exceptions import HomeAssistantError
 
 from .const import DOMAIN
-from .devices import async_push_node, discover_nodes, pull_node
+from .devices import async_push_node, async_push_radar, discover_nodes, pull_node, pull_radar
 from .model import ModelError, find_node, validate_model
 
 
@@ -25,6 +25,8 @@ def async_register(hass: HomeAssistant) -> None:
     websocket_api.async_register_command(hass, ws_save)
     websocket_api.async_register_command(hass, ws_push)
     websocket_api.async_register_command(hass, ws_pull)
+    websocket_api.async_register_command(hass, ws_push_radar)
+    websocket_api.async_register_command(hass, ws_pull_radar)
 
 
 @websocket_api.websocket_command({vol.Required("type"): f"{DOMAIN}/load"})
@@ -108,3 +110,43 @@ def ws_pull(hass: HomeAssistant, connection: websocket_api.ActiveConnection, msg
         connection.send_error(msg["id"], "pull_failed", str(err))
         return
     connection.send_result(msg["id"], shapes)
+
+
+@websocket_api.websocket_command(
+    {vol.Required("type"): f"{DOMAIN}/push_radar", vol.Required("node_id"): str}
+)
+@websocket_api.require_admin
+@websocket_api.async_response
+async def ws_push_radar(hass: HomeAssistant, connection: websocket_api.ActiveConnection, msg: dict[str, Any]) -> None:
+    """Write the saved detection distance and angles of a node to its radar."""
+    store = _store(hass)
+    node = find_node(store.model, msg["node_id"]) if store else None
+    if node is None:
+        connection.send_error(msg["id"], "not_found", "Node not found. Save the floor plan first.")
+        return
+    try:
+        result = await async_push_radar(hass, node)
+    except HomeAssistantError as err:
+        connection.send_error(msg["id"], "push_failed", str(err))
+        return
+    connection.send_result(msg["id"], result)
+
+
+@websocket_api.websocket_command(
+    {vol.Required("type"): f"{DOMAIN}/pull_radar", vol.Required("node_id"): str}
+)
+@websocket_api.require_admin
+@callback
+def ws_pull_radar(hass: HomeAssistant, connection: websocket_api.ActiveConnection, msg: dict[str, Any]) -> None:
+    """Read the radar's current detection distance, angles and mode."""
+    store = _store(hass)
+    node = find_node(store.model, msg["node_id"]) if store else None
+    if node is None:
+        connection.send_error(msg["id"], "not_found", "Node not found. Save the floor plan first.")
+        return
+    try:
+        result = pull_radar(hass, node)
+    except HomeAssistantError as err:
+        connection.send_error(msg["id"], "pull_failed", str(err))
+        return
+    connection.send_result(msg["id"], result)

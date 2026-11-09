@@ -22,5 +22,15 @@ ENTITY_NAME_PREFIXES = (
     "Entry Line ",
     "Tracking Target ",
     "Radar ",
+    "Tracking Radar ",
 )
+
+# Entities that can be written; when a name exists as several entities (the radar mode is both
+# a select and a text sensor) the writable one wins.
+WRITABLE_DOMAINS = {"select", "number", "text", "switch", "button"}
+
+NAME_RADAR_MODE = "Tracking Radar Installation Mode"
+NAME_RADAR_DISTANCE = "Tracking Radar Detection Distance"
+NAME_RADAR_START = "Tracking Radar Detection Start Angle"
+NAME_RADAR_END = "Tracking Radar Detection End Angle"
 REQUIRED_ENTITY = "Polygon Zone 1"

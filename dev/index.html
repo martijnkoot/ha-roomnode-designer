@@ -26,6 +26,7 @@ const device = (id, name, area) => ({
     ...["Polygon Zone 1","Polygon Zone 2","Polygon Zone 3","Polygon Zone 4","Polygon Exclusion 1","Polygon Exclusion 2","Entry Line 1","Entry Line 2",
       "Polygon Zones Enabled","People Count","Reset People Count","Radar Mounting Mode","Radar Default Mounting Height","Radar Default Range","Radar Default Field Of View",
       "Polygon Zone 1 Presence","Polygon Zone 2 Presence",
+      "Tracking Radar Installation Mode","Tracking Radar Detection Distance","Tracking Radar Detection Start Angle","Tracking Radar Detection End Angle",
       ...[1,2,3,4,5].flatMap(i=>[`Tracking Target ${i} X`,`Tracking Target ${i} Y`])].map(n=>[n,`${id}.${n.toLowerCase().replace(/ /g,"_")}`]),
   ]),
 });
@@ -41,6 +42,8 @@ for (const d of devices) {
   const s = (n,v,a={}) => states[d.entities[n]] = {state:String(v),attributes:a};
   s("Radar Mounting Mode","wall"); s("Radar Default Mounting Height",1500); s("Radar Default Range",6000); s("Radar Default Field Of View",120);
   s("Polygon Zones Enabled","on"); s("People Count",1);
+  s("Tracking Radar Installation Mode","side"); s("Tracking Radar Detection Distance","4.5",{unit_of_measurement:"m"});
+  s("Tracking Radar Detection Start Angle","-45"); s("Tracking Radar Detection End Angle","30");
 }
 let store = {model: JSON.parse(localStorage.getItem("rd-dev-model") || '{"floors":{}}'), revision: 0};
 const hass = {
@@ -54,6 +57,8 @@ const hass = {
         store.model = msg.model; store.revision++; localStorage.setItem("rd-dev-model", JSON.stringify(msg.model)); window.__saves=(window.__saves||0)+1; return {revision:store.revision};
       case "roomnode_designer/push": return {sent:{"Polygon Zone 1":"0:500;2000:500;2000:3000;0:3000","Entry Line 1":"-500:100;500:100;left"}};
       case "roomnode_designer/pull": return {zones:[],lines:[]};
+      case "roomnode_designer/push_radar": window.__radarPush=(window.__radarPush||0)+1; return {mode:"side", sent:{start:-30,end:60}};
+      case "roomnode_designer/pull_radar": return {mode:"side", mounting:"wall", angle_start:-45, angle_end:30, range:4500};
       case "config/floor_registry/list": return floors;
       case "config/area_registry/list": return areas;
     }

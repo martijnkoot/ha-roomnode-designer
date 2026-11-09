@@ -128,6 +128,12 @@ def _validate_node(raw: Any) -> dict[str, Any]:
     lines = [_validate_line(l) for l in _list(raw.get("lines"), "node.lines", 2)]
     _unique_slots(zones, "zone")
     _unique_slots(lines, "entry line")
+    fov = _num(raw.get("fov"), "node.fov", default=120, lo=10, hi=360)
+    # Detection angles (what the radar itself is configured with). Older plans only have `fov`.
+    if mounting == "ceiling":
+        default_start, default_end = 0.0, 360.0
+    else:
+        default_start, default_end = max(-60.0, -fov / 2), min(60.0, fov / 2)
     return {
         "id": _str(raw.get("id"), "node.id", max_len=64) or _fail("node.id is required"),
         "device_id": _str(raw.get("device_id"), "node.device_id", max_len=128) or None,
@@ -139,7 +145,11 @@ def _validate_node(raw: Any) -> dict[str, Any]:
         "mounting": mounting,
         "height": _num(raw.get("height"), "node.height", default=1500, lo=0, hi=10000),
         "range": _num(raw.get("range"), "node.range", default=6000, lo=500, hi=20000),
-        "fov": _num(raw.get("fov"), "node.fov", default=120, lo=10, hi=360),
+        "fov": fov,
+        # Not rejected here when outside the radar's limits: that would block saving the whole
+        # plan. Pushing validates them against the device's installation mode instead.
+        "angle_start": _num(raw.get("angle_start"), "node.angle_start", default=default_start, lo=-720, hi=720),
+        "angle_end": _num(raw.get("angle_end"), "node.angle_end", default=default_end, lo=-720, hi=720),
         "zones": zones,
         "lines": lines,
     }

@@ -34,7 +34,13 @@ const TEXT = {
     hint_line: "Click two points (Shift = straight). Then flip the direction in the panel if needed.",
     slots_full: "All slots of this type are in use.", slot_taken: "That slot is already in use.", auto_floor: "Default floor",
     floor_hint: "Using a default floor. Add floors under Settings → Areas to separate levels.",
-    cover_note: "Approximate radar coverage", min_points: "A shape needs at least 3 points.", dim_invalid: "Enter a length such as 4.5 (metres), 450cm or 4500mm.", dim_hint: "Enter = apply, Esc = cancel", hint_edit: "Click a corner, then press Delete or right-click it to remove it. Click a dimension to type an exact length.", lock: "Lock", unlock: "Unlock", lock_title: "Lock the drawing against accidental changes", unlock_title: "Unlock to edit the drawing", locked_msg: "Locked. Unlock to make changes.", locked_hint: "Locked: you can select, pan, zoom and push; nothing can be changed.", hide_tools: "Hide toolbar", show_tools: "Show toolbar", hide_left: "Hide lists", show_left: "Show lists", hide_right: "Hide details", show_right: "Show details", targets: "targets", menu: "Menu", plan: "Plan", panel: "Panel",
+    cover_note: "Approximate radar coverage", min_points: "A shape needs at least 3 points.", dim_invalid: "Enter a length such as 4.5 (metres), 450cm or 4500mm.", dim_hint: "Enter = apply, Esc = cancel", hint_edit: "Click a corner, then press Delete or right-click it to remove it. Click a dimension to type an exact length.", lock: "Lock", unlock: "Unlock", lock_title: "Lock the drawing against accidental changes", unlock_title: "Unlock to edit the drawing", locked_msg: "Locked. Unlock to make changes.", locked_hint: "Locked: you can select, pan, zoom and push; nothing can be changed.", angles: "Detection angle", angle_start: "Start (°)", angle_end: "End (°)",
+    hint_angle_wall: "Wall mode: -60° to 60° around the heading (0° = straight ahead). A narrower range makes the radar ignore the sides. Max distance 6 m.",
+    hint_angle_ceiling: "Ceiling mode: 0° to 360° around the node (0° = the heading arrow). A smaller range limits detection to a slice. Max distance 4 m.",
+    p_dist: "Max range must be between 0.1 and {max} m in this mode.", p_order: "Start must be smaller than end.", p_bounds: "Angles must stay between {lo}° and {hi}° in this mode.",
+    push_radar: "Send radar settings", pull_radar: "Read radar settings", on_device: "On the device", no_radar_entities: "This device does not expose the radar detection settings.",
+    mode_mismatch: "The radar is in {mode} mode, the plan says {plan}. Change one of them first.", radar_pushed: "Radar updated", radar_same: "The radar already has these settings.", radar_pulled: "Radar settings read from the device", rk_distance: "distance", rk_start: "start", rk_end: "end",
+    hide_tools: "Hide toolbar", show_tools: "Show toolbar", hide_left: "Hide lists", show_left: "Show lists", hide_right: "Hide details", show_right: "Show details", targets: "targets", menu: "Menu", plan: "Plan", panel: "Panel",
   },
   nl: {
     title: "Roomnodes", floor: "Verdieping", nodes: "Roomnodes op deze verdieping", devices: "Beschikbare roomnodes",
@@ -58,7 +64,13 @@ const TEXT = {
     hint_line: "Klik twee punten (Shift = recht). Draai daarna zo nodig de richting om in het paneel.",
     slots_full: "Alle slots van dit type zijn in gebruik.", slot_taken: "Dat slot is al in gebruik.", auto_floor: "Standaardverdieping",
     floor_hint: "Standaardverdieping in gebruik. Voeg verdiepingen toe onder Instellingen → Gebieden.",
-    cover_note: "Geschat radarbereik", min_points: "Een vorm heeft minstens 3 punten nodig.", dim_invalid: "Voer een lengte in zoals 4,5 (meter), 450cm of 4500mm.", dim_hint: "Enter = toepassen, Esc = annuleren", hint_edit: "Klik een hoekpunt en druk op Delete, of rechtsklik erop, om het te verwijderen. Klik op een maat om een exacte lengte in te typen.", lock: "Vergrendel", unlock: "Ontgrendel", lock_title: "Vergrendel de tekening tegen onbedoelde wijzigingen", unlock_title: "Ontgrendel om de tekening te bewerken", locked_msg: "Vergrendeld. Ontgrendel om te wijzigen.", locked_hint: "Vergrendeld: je kunt selecteren, verschuiven, zoomen en naar het apparaat sturen; niets kan gewijzigd worden.", hide_tools: "Werkbalk verbergen", show_tools: "Werkbalk tonen", hide_left: "Lijsten verbergen", show_left: "Lijsten tonen", hide_right: "Details verbergen", show_right: "Details tonen", targets: "doelen", menu: "Menu", plan: "Plattegrond", panel: "Paneel",
+    cover_note: "Geschat radarbereik", min_points: "Een vorm heeft minstens 3 punten nodig.", dim_invalid: "Voer een lengte in zoals 4,5 (meter), 450cm of 4500mm.", dim_hint: "Enter = toepassen, Esc = annuleren", hint_edit: "Klik een hoekpunt en druk op Delete, of rechtsklik erop, om het te verwijderen. Klik op een maat om een exacte lengte in te typen.", lock: "Vergrendel", unlock: "Ontgrendel", lock_title: "Vergrendel de tekening tegen onbedoelde wijzigingen", unlock_title: "Ontgrendel om de tekening te bewerken", locked_msg: "Vergrendeld. Ontgrendel om te wijzigen.", locked_hint: "Vergrendeld: je kunt selecteren, verschuiven, zoomen en naar het apparaat sturen; niets kan gewijzigd worden.", angles: "Detectiehoek", angle_start: "Start (°)", angle_end: "Eind (°)",
+    hint_angle_wall: "Wandmodus: -60° tot 60° rond de richting (0° = recht vooruit). Een smaller bereik laat de radar de zijkanten negeren. Max. afstand 6 m.",
+    hint_angle_ceiling: "Plafondmodus: 0° tot 360° rond de node (0° = de richtingspijl). Een kleiner bereik beperkt de detectie tot een taartpunt. Max. afstand 4 m.",
+    p_dist: "Max. bereik moet in deze modus tussen 0,1 en {max} m liggen.", p_order: "Start moet kleiner zijn dan eind.", p_bounds: "Hoeken moeten in deze modus tussen {lo}° en {hi}° blijven.",
+    push_radar: "Radar-instellingen versturen", pull_radar: "Radar-instellingen lezen", on_device: "Op het apparaat", no_radar_entities: "Dit apparaat toont de radar-detectie-instellingen niet.",
+    mode_mismatch: "De radar staat in {mode}-modus, het plan zegt {plan}. Pas eerst een van beide aan.", radar_pushed: "Radar bijgewerkt", radar_same: "De radar had deze instellingen al.", radar_pulled: "Radar-instellingen van het apparaat gelezen", rk_distance: "afstand", rk_start: "start", rk_end: "eind",
+    hide_tools: "Werkbalk verbergen", show_tools: "Werkbalk tonen", hide_left: "Lijsten verbergen", show_left: "Lijsten tonen", hide_right: "Details verbergen", show_right: "Details tonen", targets: "doelen", menu: "Menu", plan: "Plattegrond", panel: "Paneel",
   },
 };
 
@@ -81,33 +93,36 @@ function radarToFloor(p, node) {
   const { right, forward } = basis(node);
   return [node.x + p[0] * right[0] + p[1] * forward[0], node.y + p[0] * right[1] + p[1] * forward[1]];
 }
-function coverageRadius(node) {
-  if (node.mounting === "ceiling") {
-    const r = node.height > 0 ? Math.tan(rad(Math.min(node.fov, 170) / 2)) * node.height : node.range;
-    return Math.min(node.range, r);
-  }
-  return node.range;
+/* Detection angles are what the radar is configured with: -60..60 around the heading in wall
+   (side) mode, a 0..360 slice around the node in ceiling (top) mode. Positive angles run
+   clockwise; the left/right mirror option reverses them. The sign was not verified on hardware. */
+function coverageRadius(node) { return node.range; }
+function detectAngles(node) {
+  const ceiling = node.mounting === "ceiling";
+  return [node.angle_start ?? (ceiling ? 0 : -60), node.angle_end ?? (ceiling ? 360 : 60)];
 }
+function floorAngle(node, a) { return (node.rotation || 0) + (node.flip_x ? -a : a); }
 function coveragePoints(node) {
-  const R = coverageRadius(node);
-  if (node.mounting === "ceiling") {
+  const R = coverageRadius(node), [a0, a1] = detectAngles(node);
+  if (node.mounting === "ceiling" && a1 - a0 >= 359.9) {
     return Array.from({ length: 48 }, (_, i) => [node.x + R * Math.cos(rad(i * 7.5)), node.y + R * Math.sin(rad(i * 7.5))]);
   }
   const pts = [[node.x, node.y]];
-  const half = node.fov / 2;
-  for (let a = -half; a <= half + 0.01; a += 4) {
-    const h = rad((node.rotation || 0) + a);
+  const steps = Math.max(1, Math.ceil((a1 - a0) / 4));
+  for (let i = 0; i <= steps; i++) {
+    const h = rad(floorAngle(node, a0 + ((a1 - a0) * i) / steps));
     pts.push([node.x + R * Math.sin(h), node.y + R * Math.cos(h)]);
   }
   return pts;
 }
 function inCoverage(node, p) {
-  const d = dist([node.x, node.y], p);
-  if (d > coverageRadius(node)) return false;
-  if (node.mounting === "ceiling") return true;
-  let a = (Math.atan2(p[0] - node.x, p[1] - node.y) * 180) / Math.PI - (node.rotation || 0);
-  a = ((a + 540) % 360) - 180;
-  return Math.abs(a) <= node.fov / 2;
+  if (dist([node.x, node.y], p) > coverageRadius(node)) return false;
+  const [a0, a1] = detectAngles(node);
+  if (node.mounting === "ceiling" && a1 - a0 >= 359.9) return true;
+  let rel = (Math.atan2(p[0] - node.x, p[1] - node.y) * 180) / Math.PI - (node.rotation || 0);
+  if (node.flip_x) rel = -rel;
+  rel = node.mounting === "ceiling" ? ((rel % 360) + 360) % 360 : ((rel + 540) % 360) - 180;
+  return rel >= a0 && rel <= a1;
 }
 function centroid(pts) {
   return [pts.reduce((s, p) => s + p[0], 0) / pts.length, pts.reduce((s, p) => s + p[1], 0) / pts.length];
@@ -438,17 +453,24 @@ class RoomnodeDesignerPanel extends HTMLElement {
       const out = v * k;
       return out >= lo && out <= hi ? Math.round(out) : null;
     };
-    const deg = (n) => { const v = parseFloat(this.stateOf(dev, n)?.state); return v >= 10 && v <= 360 ? v : null; };
-    const mode = this.stateOf(dev, "Radar Mounting Mode")?.state;
+    const numv = (n) => { const v = parseFloat(this.stateOf(dev, n)?.state); return Number.isFinite(v) ? v : null; };
+    const devMode = this.stateOf(dev, "Tracking Radar Installation Mode")?.state;
+    const mode = devMode === "top" ? "ceiling" : devMode === "side" ? "wall" : this.stateOf(dev, "Radar Mounting Mode")?.state;
     const node = {
       id: uid(), device_id: dev.device_id, name: dev.name,
       x: Math.round(at[0]), y: Math.round(at[1]), rotation: 0, flip_x: false,
       mounting: mode === "ceiling" ? "ceiling" : "wall",
       height: mm("Radar Default Mounting Height", 0, 10000) ?? 1500,
-      range: mm("Radar Default Range", 500, 20000) ?? 6000,
-      fov: deg("Radar Default Field Of View") ?? 120,
       zones: [], lines: [],
     };
+    // Start from what the radar is actually set to; fall back to the firmware defaults.
+    const ceiling = node.mounting === "ceiling", maxR = ceiling ? 4000 : 6000;
+    node.range = Math.min(maxR, mm("Tracking Radar Detection Distance", 500, 20000) ?? mm("Radar Default Range", 500, 20000) ?? maxR);
+    let a0 = numv("Tracking Radar Detection Start Angle"), a1 = numv("Tracking Radar Detection End Angle");
+    const [lo, hi] = ceiling ? [0, 360] : [-60, 60];
+    if (a0 === null || a1 === null || !(a0 < a1) || a0 < lo || a1 > hi) [a0, a1] = [lo, hi];
+    node.angle_start = a0; node.angle_end = a1;
+    node.fov = Math.max(10, Math.min(360, a1 - a0));
     this._ensureFloor(); this.fl.nodes.push(node);
     this.sel = { type: "node", id: node.id };
     this._changed(); this._renderAll();
@@ -869,7 +891,7 @@ class RoomnodeDesignerPanel extends HTMLElement {
       this.draw = null; this.tool = "select"; this.drag = null; this.pendingArea = null; this._closeDim();
       this._renderAll(); return;
     }
-    if (this.locked && ["tool", "place", "draw-area", "delete", "flip-dir", "swap-ends", "pull", "undo", "redo", "vdel"].includes(a) && !(a === "tool" && id === "select")) {
+    if (this.locked && ["tool", "place", "draw-area", "delete", "flip-dir", "swap-ends", "pull", "pull-radar", "undo", "redo", "vdel"].includes(a) && !(a === "tool" && id === "select")) {
       this._toast(this.t("locked_msg"), true); return;
     }
     if (a === "tool") { this._setTool(id); return; }
@@ -892,6 +914,8 @@ class RoomnodeDesignerPanel extends HTMLElement {
     if (a === "swap-ends") { const l = this._selObj(); this._beginEdit(); [l.p1, l.p2] = [l.p2, l.p1]; l.in_side = l.in_side === "left" ? "right" : "left"; this._changed(); this._renderAll(); return; }
     if (a === "toggle-zones") { const n = this.selNode(); const ent = this.deviceOf(n)?.entities?.["Polygon Zones Enabled"]; if (ent) this._hass.callService("switch", "toggle", { entity_id: ent }); return; }
     if (a === "reset-people") { const n = this.selNode(); const ent = this.deviceOf(n)?.entities?.["Reset People Count"]; if (ent) this._hass.callService("button", "press", { entity_id: ent }); return; }
+    if (a === "push-radar") return this._pushRadar();
+    if (a === "pull-radar") return this._pullRadar();
     if (a === "push") return this._push();
     if (a === "pull") return this._pull();
   }
@@ -908,7 +932,16 @@ class RoomnodeDesignerPanel extends HTMLElement {
       obj.area_id = v || null;
       const area = this.areas.find((a) => a.area_id === v);
       if (area && (!obj.name || obj.name.startsWith(this.t("room")))) obj.name = area.name;
-    } else if (f === "mounting") obj.mounting = v;
+    } else if (f === "mounting") {
+      // Keep the angles at the new mode's defaults when they were still at the old mode's defaults.
+      const was = obj.mounting === "ceiling" ? [0, 360] : [-60, 60], next = v === "ceiling" ? [0, 360] : [-60, 60];
+      obj.mounting = v;
+      if (obj.angle_start === was[0] && obj.angle_end === was[1]) [obj.angle_start, obj.angle_end] = next;
+      obj.range = Math.min(obj.range, v === "ceiling" ? 4000 : 6000);
+    } else if (f === "angle_start" || f === "angle_end") {
+      const n = num();
+      if (n !== null) obj[f] = Math.round(Math.min(720, Math.max(-360, n)) * 10) / 10;
+    }
     else if (f === "flip_x") obj.flip_x = !!v;
     else if (["height", "range", "x", "y"].includes(f)) {
       const n = num();
@@ -936,6 +969,30 @@ class RoomnodeDesignerPanel extends HTMLElement {
       this.lastSent[node.id] = res.sent;
       this._toast(this.t("pushed")); this._renderRight();
     } catch (err) { this._toast(`${this.t("push_failed")}: ${err?.message || err}`, true); }
+  }
+  async _pushRadar() {
+    const node = this.selNode(); if (!node) return;
+    this._toast(this.t("pushing"));
+    try {
+      await this._flushSave();
+      const res = await this._hass.callWS({ type: `${API}/push_radar`, node_id: node.id });
+      const parts = Object.entries(res.sent).map(([k, v]) => `${this.t("rk_" + k)} ${v}${k === "distance" ? " m" : "°"}`);
+      this._toast(parts.length ? `${this.t("radar_pushed")}: ${parts.join(", ")}` : this.t("radar_same"));
+      this._renderRight();
+    } catch (err) { this._toast(`${this.t("push_failed")}: ${err?.message || err}`, true); }
+  }
+  async _pullRadar() {
+    const node = this.selNode(); if (!node) return;
+    try {
+      await this._flushSave();
+      const res = await this._hass.callWS({ type: `${API}/pull_radar`, node_id: node.id });
+      this._beginEdit();
+      if (res.mounting) node.mounting = res.mounting;
+      if (res.angle_start !== undefined) node.angle_start = res.angle_start;
+      if (res.angle_end !== undefined) node.angle_end = res.angle_end;
+      if (res.range !== undefined && res.range >= 500 && res.range <= 20000) node.range = res.range;
+      this._changed(); this._renderAll(); this._toast(this.t("radar_pulled"));
+    } catch (err) { this._toast(err?.message || String(err), true); }
   }
   async _pull() {
     const node = this.selNode(); if (!node) return;
@@ -1035,7 +1092,7 @@ class RoomnodeDesignerPanel extends HTMLElement {
     if (!this.locked || !this.selNode() && !this._selObj()) return;
     const R = this._dom.right;
     R.querySelectorAll("input,select").forEach((el) => { el.disabled = true; });
-    R.querySelectorAll('[data-a="delete"],[data-a="pull"],[data-a="flip-dir"],[data-a="swap-ends"]').forEach((b) => { b.disabled = true; b.title = this.t("locked_msg"); });
+    R.querySelectorAll('[data-a="delete"],[data-a="pull"],[data-a="pull-radar"],[data-a="flip-dir"],[data-a="swap-ends"]').forEach((b) => { b.disabled = true; b.title = this.t("locked_msg"); });
     R.insertAdjacentHTML("afterbegin", `<div class="lockbar">🔒 ${esc(this.t("locked_hint"))}</div>`);
   }
   _renderLeftInner() {
@@ -1057,6 +1114,31 @@ class RoomnodeDesignerPanel extends HTMLElement {
     this._dom.left.innerHTML = `<h3>${esc(this.t("nodes"))}</h3>${nodeItems}<h3>${esc(this.t("devices"))}</h3>${devItems}<h3>${esc(this.t("rooms"))}</h3>${roomItems || `<div class="empty">—</div>`}${this.floorId === DEFAULT_FLOOR ? `<div class="hint" style="margin-top:12px">${esc(this.t("floor_hint"))}</div>` : ""}`;
   }
 
+  _radarProblems(node) {
+    const top = node.mounting === "ceiling", maxD = top ? 4 : 6, lo = top ? 0 : -60, hi = top ? 360 : 60;
+    const d = node.range / 1000, out = [];
+    if (d < 0.1 || d > maxD) out.push(this.t("p_dist").replace("{max}", maxD));
+    if (!(node.angle_start < node.angle_end)) out.push(this.t("p_order"));
+    if (node.angle_start < lo || node.angle_end > hi) out.push(this.t("p_bounds").replace("{lo}", lo).replace("{hi}", hi));
+    return out;
+  }
+  _radarModeMismatch(node, dev) {
+    const mode = this.stateOf(dev, "Tracking Radar Installation Mode")?.state;
+    return (mode === "side" || mode === "top") && mode !== (node.mounting === "ceiling" ? "top" : "side");
+  }
+  _radarDeviceLine(node, dev) {
+    if (!dev) return "";
+    const num = (n) => { const v = parseFloat(this.stateOf(dev, n)?.state); return Number.isFinite(v) ? v : null; };
+    const mode = this.stateOf(dev, "Tracking Radar Installation Mode")?.state;
+    const a0 = num("Tracking Radar Detection Start Angle"), a1 = num("Tracking Radar Detection End Angle");
+    const dd = this.stateOf(dev, "Tracking Radar Detection Distance");
+    if (a0 === null || a1 === null) return `<div class="hint">${esc(this.t("no_radar_entities"))}</div>`;
+    const dm = parseFloat(dd?.state), unit = dd?.attributes?.unit_of_measurement;
+    const distance = Number.isFinite(dm) ? ` · ${(dm * (unit === "mm" ? 0.001 : unit === "cm" ? 0.01 : 1)).toFixed(1)} m` : "";
+    const wantMode = node.mounting === "ceiling" ? "top" : "side";
+    const mismatch = mode && mode !== wantMode ? `<div class="warn">⚠ ${esc(this.t("mode_mismatch").replace("{mode}", mode).replace("{plan}", wantMode))}</div>` : "";
+    return `<div class="hint">${esc(this.t("on_device"))}: ${a0}° … ${a1}°${distance}${mode ? ` · ${esc(mode)}` : ""}</div>${mismatch}`;
+  }
   _renderRightInner() {
     const R = this._dom.right, s = this.sel, obj = this._selObj();
     if (!obj) { R.innerHTML = `<div class="empty" style="padding-top:20px">${esc(this.t("select_hint"))}</div>`; return; }
@@ -1079,7 +1161,15 @@ class RoomnodeDesignerPanel extends HTMLElement {
         <div class="two">${field(this.t("mounting"), `<select data-f="mounting">${opt("wall", this.t("wall"), obj.mounting)}${opt("ceiling", this.t("ceiling"), obj.mounting)}</select>`)}
         ${field(this.t("rotation"), inp("rotation", Math.round(obj.rotation), "number", 'step="5"'))}</div>
         <div class="two">${field(this.t("height"), inp("height", m2(obj.height), "number", 'step="0.1" min="0"'))}${field(this.t("range"), inp("range", m2(obj.range), "number", 'step="0.5" min="0.5"'))}</div>
-        <div class="two">${field(this.t("fov"), inp("fov", Math.round(obj.fov), "number", 'min="10" max="360"'))}<span></span></div>
+        <h3>${esc(this.t("angles"))}</h3>
+        <div class="two">${field(this.t("angle_start"), inp("angle_start", +obj.angle_start.toFixed(1), "number", 'step="1"'))}${field(this.t("angle_end"), inp("angle_end", +obj.angle_end.toFixed(1), "number", 'step="1"'))}</div>
+        <div class="hint">${esc(this.t(obj.mounting === "ceiling" ? "hint_angle_ceiling" : "hint_angle_wall"))}</div>
+        ${this._radarProblems(obj).map((m) => `<div class="warn">⚠ ${esc(m)}</div>`).join("")}
+        ${this._radarDeviceLine(obj, dev)}
+        <div class="row">
+          <button class="btn" data-a="push-radar" ${dev && !this._radarProblems(obj).length && !this._radarModeMismatch(obj, dev) ? "" : "disabled"}>${esc(this.t("push_radar"))}</button>
+          <button class="btn ghost" data-a="pull-radar" ${dev ? "" : "disabled"}>${esc(this.t("pull_radar"))}</button>
+        </div>
         <div class="two">${field(this.t("pos_x"), inp("x", m2(obj.x), "number", 'step="0.1"'))}${field(this.t("pos_y"), inp("y", m2(obj.y), "number", 'step="0.1"'))}</div>
         <label class="chk"><input type="checkbox" data-f="flip_x" ${obj.flip_x ? "checked" : ""}> ${esc(this.t("flip_x"))}</label><div class="hint">${esc(this.t("flip_hint"))}</div>
         <div class="row">

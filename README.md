@@ -11,7 +11,7 @@ and writes them to those entities.
 
 ## Status
 
-Version 0.1.8. The editor and the coordinate maths were exercised in a browser against a
+Version 0.2.0. The editor and the coordinate maths were exercised in a browser against a
 simulated Home Assistant, and the geometry and validation have unit tests. **It has not yet
 been run inside a real Home Assistant, and the radar axis orientation has not been verified
 on hardware.** See [Before first use](#before-first-use).
@@ -61,8 +61,30 @@ The **lock** button at the right of the toolbar (shortcut **L**) protects the dr
 Changes autosave. Ctrl/Cmd+Z undoes, Delete removes the selection, Esc cancels. Scroll to
 zoom, drag the background to pan.
 
+## Detection angle
+
+A roomnode has a **Detection angle** (start and end) next to its range. They map to the radar's
+own settings `Tracking Radar Detection Start Angle`, `Detection End Angle` and `Detection
+Distance`, and decide the coverage drawn on the plan. *Send radar settings* writes them to the
+radar (only the values that differ); *Read radar settings* fills them in from the device.
+Placing a roomnode starts from what the radar currently reports.
+
+The firmware accepts different ranges per installation mode, and the editor checks the same
+rules before sending:
+
+| Mode | Distance | Angles | Meaning |
+| --- | --- | --- | --- |
+| Wall (`side`) | 0.1 - 6 m | -60° to 60°, start < end | A sector around the heading; 0° is straight ahead. Narrowing it makes the radar ignore the sides. |
+| Ceiling (`top`) | 0.1 - 4 m | 0° to 360°, start < end | A slice of the circle around the node; 0° is the heading arrow. 0-360 is the full circle, a smaller range limits detection to a slice, for example a doorway. |
+
+So the angles are useful in ceiling mode too, but mean something different from wall mode.
+The integration never changes the radar's installation mode: if the plan and the radar disagree,
+sending is disabled and you are told which one to change. The installation height and
+installation angle of the radar are not written.
+
 ## Before first use
 
+- **Angle direction.** Positive angles are drawn clockwise from the heading, and 0° as the heading. This follows the firmware's value ranges but was not verified on hardware; check it with *Live targets* (and *Mirror left/right*, which also reverses the angles).
 - **Mirroring.** The firmware reports targets as x lateral, y forward. Whether positive x is
   to the radar's left or right was not verified. Use *Live targets* once per node and set
   *Mirror left/right* if needed; entry line directions are corrected automatically.
@@ -70,7 +92,6 @@ zoom, drag the background to pan.
   `Polygon Zone 1`). If you renamed the firmware entities, discovery fails.
 - **Shape limits come from the firmware**: 4 zones, 2 exclusions, 2 entry lines, 20 points per
   shape, 255 characters per encoded shape. Violations are reported when pushing.
-- **Ceiling coverage** is drawn as an approximate circle from height and field of view.
 - The plan is stored in `.storage/roomnode_designer.model` and is not part of Home Assistant
   backups of the ESPHome configuration, only of the `.storage` folder.
 

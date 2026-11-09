@@ -29,6 +29,18 @@ class ValidateTests(unittest.TestCase):
         self.assertEqual((node["mounting"], node["fov"], node["range"]), ("wall", 120.0, 6000.0))
         self.assertEqual(node["zones"], [])
 
+    def test_angles_derive_from_fov_for_old_plans(self):
+        wall = m.validate_model(model_with(good_node(fov=90)))["floors"]["f1"]["nodes"][0]
+        self.assertEqual((wall["angle_start"], wall["angle_end"]), (-45.0, 45.0))
+        wide = m.validate_model(model_with(good_node(fov=200)))["floors"]["f1"]["nodes"][0]
+        self.assertEqual((wide["angle_start"], wide["angle_end"]), (-60.0, 60.0))  # clamped to the radar's limit
+        ceiling = m.validate_model(model_with(good_node(mounting="ceiling")))["floors"]["f1"]["nodes"][0]
+        self.assertEqual((ceiling["angle_start"], ceiling["angle_end"]), (0.0, 360.0))
+
+    def test_explicit_angles_are_kept_even_if_the_radar_would_refuse_them(self):
+        node = m.validate_model(model_with(good_node(angle_start=-90, angle_end=45)))["floors"]["f1"]["nodes"][0]
+        self.assertEqual((node["angle_start"], node["angle_end"]), (-90.0, 45.0))
+
     def test_unknown_keys_dropped(self):
         node = m.validate_model(model_with(good_node(evil="<script>")))["floors"]["f1"]["nodes"][0]
         self.assertNotIn("evil", node)
