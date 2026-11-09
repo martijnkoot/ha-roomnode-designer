@@ -34,7 +34,7 @@ const TEXT = {
     hint_line: "Click two points (Shift = straight). Then flip the direction in the panel if needed.",
     slots_full: "All slots of this type are in use.", slot_taken: "That slot is already in use.", auto_floor: "Default floor",
     floor_hint: "Using a default floor. Add floors under Settings → Areas to separate levels.",
-    cover_note: "Approximate radar coverage", hide_left: "Hide lists", show_left: "Show lists", hide_right: "Hide details", show_right: "Show details", targets: "targets", menu: "Menu", plan: "Plan", panel: "Panel",
+    cover_note: "Approximate radar coverage", min_points: "A shape needs at least 3 points.", dim_invalid: "Enter a length such as 4.5 (metres), 450cm or 4500mm.", dim_hint: "Enter = apply, Esc = cancel", hint_edit: "Click a corner, then press Delete or right-click it to remove it. Click a dimension to type an exact length.", hide_left: "Hide lists", show_left: "Show lists", hide_right: "Hide details", show_right: "Show details", targets: "targets", menu: "Menu", plan: "Plan", panel: "Panel",
   },
   nl: {
     title: "Roomnodes", floor: "Verdieping", nodes: "Roomnodes op deze verdieping", devices: "Beschikbare roomnodes",
@@ -58,7 +58,7 @@ const TEXT = {
     hint_line: "Klik twee punten (Shift = recht). Draai daarna zo nodig de richting om in het paneel.",
     slots_full: "Alle slots van dit type zijn in gebruik.", slot_taken: "Dat slot is al in gebruik.", auto_floor: "Standaardverdieping",
     floor_hint: "Standaardverdieping in gebruik. Voeg verdiepingen toe onder Instellingen → Gebieden.",
-    cover_note: "Geschat radarbereik", hide_left: "Lijsten verbergen", show_left: "Lijsten tonen", hide_right: "Details verbergen", show_right: "Details tonen", targets: "doelen", menu: "Menu", plan: "Plattegrond", panel: "Paneel",
+    cover_note: "Geschat radarbereik", min_points: "Een vorm heeft minstens 3 punten nodig.", dim_invalid: "Voer een lengte in zoals 4,5 (meter), 450cm of 4500mm.", dim_hint: "Enter = toepassen, Esc = annuleren", hint_edit: "Klik een hoekpunt en druk op Delete, of rechtsklik erop, om het te verwijderen. Klik op een maat om een exacte lengte in te typen.", hide_left: "Lijsten verbergen", show_left: "Lijsten tonen", hide_right: "Details verbergen", show_right: "Details tonen", targets: "doelen", menu: "Menu", plan: "Plattegrond", panel: "Paneel",
   },
 };
 
@@ -175,6 +175,7 @@ svg.pan{cursor:grab}svg.draw{cursor:crosshair}
 .bar{position:absolute;left:12px;bottom:10px;right:12px;display:flex;justify-content:space-between;font-size:12px;color:var(--rd-sub);pointer-events:none;z-index:1}
 .toast{position:absolute;left:50%;bottom:50px;transform:translateX(-50%);background:#323232;color:#fff;padding:10px 16px;border-radius:8px;z-index:5;max-width:80%;box-shadow:0 3px 10px rgba(0,0,0,.4)}.toast.err{background:var(--rd-err)}
 .toast[hidden]{display:none}
+input.dim-input{position:absolute;z-index:6;width:88px;padding:5px 6px;border:2px solid var(--rd-accent);border-radius:8px;text-align:center;font:inherit;font-weight:600;background:var(--rd-card);color:var(--rd-text);box-shadow:0 2px 10px rgba(0,0,0,.3)}
 .toggle-side{display:none}
 @media (max-width:1100px){main,main.hide-left,main.hide-right,main.hide-left.hide-right{grid-template-columns:1fr;grid-template-rows:1fr auto}aside.left,.canvas,aside.right{grid-column:1}aside.left{display:none}main.showleft aside.left{display:block;position:absolute;z-index:4;left:0;top:56px;bottom:0;width:min(320px,90vw)}aside.right{border-left:0;border-top:1px solid var(--rd-line);max-height:42vh}.menu{display:block}.toggle-side{display:inline-block}.tools button{min-width:52px;padding:5px 7px}.tools button span{display:none}}
 `;
@@ -502,6 +503,11 @@ class RoomnodeDesignerPanel extends HTMLElement {
     const svg = this._dom.svg;
     const [sx, sy] = this._evPoint(e);
     const w = this.s2w(sx, sy);
+    this._closeDim();
+    if (e.button === 2 && this.tool === "select") {
+      const hv = e.target.closest("[data-t='vh']");
+      if (hv) { this._deleteVertex(Number(hv.dataset.i)); return; }
+    }
     if (e.button === 1 || e.button === 2 || this._space) {
       this.drag = { type: "pan", sx, sy, ox: this.view.ox, oy: this.view.oy };
       svg.setPointerCapture(e.pointerId); return;
@@ -515,12 +521,14 @@ class RoomnodeDesignerPanel extends HTMLElement {
     if (!t) { this.sel = null; this.drag = { type: "pan", sx, sy, ox: this.view.ox, oy: this.view.oy }; this._renderAll(); return; }
     const id = el.dataset.id, i = Number(el.dataset.i);
 
-    if (t === "vh") { this._beginEdit(); this.drag = { type: "vertex", i }; return; }
+    if (t === "vdel") { this._deleteVertex(i); return; }
+    if (t === "dim") { this.drag = { type: "dim", i, kind: el.dataset.kind }; return; }
+    if (t === "vh") { this._beginEdit(); this.drag = { type: "vertex", i, sx, sy, moved: false }; return; }
     if (t === "mh") {
       this._beginEdit();
       const obj = this._selObj(); const a = obj.points[i], b = obj.points[(i + 1) % obj.points.length];
       obj.points.splice(i + 1, 0, [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2]);
-      this.drag = { type: "vertex", i: i + 1 }; this._renderCanvas(); return;
+      this.drag = { type: "vertex", i: i + 1, sx, sy, moved: true }; this._renderCanvas(); return;
     }
     if (t === "lp") { this._beginEdit(); this.drag = { type: "lp", i }; return; }
     if (t === "rot") { this._beginEdit(); this.drag = { type: "rot" }; return; }
@@ -554,6 +562,8 @@ class RoomnodeDesignerPanel extends HTMLElement {
       else if (this.sel.type === "line") { obj.p1 = [d.orig.p1[0] + sdx, d.orig.p1[1] + sdy]; obj.p2 = [d.orig.p2[0] + sdx, d.orig.p2[1] + sdy]; }
       else obj.points = d.orig.points.map((p) => [p[0] + sdx, p[1] + sdy]);
     } else if (d.type === "vertex") {
+      if (!d.moved && Math.hypot(sx - d.sx, sy - d.sy) < 4) return;
+      d.moved = true;
       const pts = obj.points, n = pts.length;
       obj.points[d.i] = this._snap(w, e.altKey, e.shiftKey ? [pts[(d.i + n - 1) % n], pts[(d.i + 1) % n]] : null);
     } else if (d.type === "lp") {
@@ -572,6 +582,11 @@ class RoomnodeDesignerPanel extends HTMLElement {
     try { this._dom.svg.releasePointerCapture(e.pointerId); } catch (_) {}
     if (!this.drag && this.draw) { this._drawUp(e); return; }
     const d = this.drag; this.drag = null;
+    if (d?.type === "dim") { this._openDim(d.kind, d.i); return; }
+    if (d?.type === "vertex") {
+      this.selVertex = { sel: JSON.stringify(this.sel), i: d.i };
+      if (!d.moved) { this.undo.pop(); this._renderAll(); return; }
+    }
     if (!d || d.type === "pan") { this._renderCanvas(); return; }
     if (d.type === "move" && !d.moved) { this.undo.pop(); this._renderAll(); return; }
     this._changed(); this._renderAll();
@@ -582,7 +597,7 @@ class RoomnodeDesignerPanel extends HTMLElement {
     const el = e.target.closest("[data-t='vh']");
     if (el) {
       const obj = this._selObj();
-      if (obj?.points && obj.points.length > 3) { this._beginEdit(); obj.points.splice(Number(el.dataset.i), 1); this._changed(); this._renderAll(); }
+      if (obj?.points) this._deleteVertex(Number(el.dataset.i));
     }
   }
 
@@ -669,6 +684,75 @@ class RoomnodeDesignerPanel extends HTMLElement {
     this._changed(); this._renderAll();
   }
 
+  /* ---------- vertices and exact dimensions ---------- */
+  _vertexSel() {
+    const v = this.selVertex, obj = this._selObj();
+    if (!v || !obj?.points || v.sel !== JSON.stringify(this.sel) || v.i >= obj.points.length) return null;
+    return v.i;
+  }
+  _deleteVertex(i) {
+    const obj = this._selObj();
+    if (!obj?.points) return;
+    if (obj.points.length <= 3) { this._toast(this.t("min_points"), true); return; }
+    this._beginEdit();
+    obj.points.splice(i, 1);
+    this.selVertex = null;
+    this._changed(); this._renderAll();
+  }
+  _closeDim() {
+    const el = this._dimInput; this._dimInput = null;
+    if (el?.isConnected) el.remove();
+  }
+  _dimEnds(kind, i) {
+    const obj = this._selObj(); if (!obj) return null;
+    if (kind === "line") return [obj.p1, obj.p2];
+    return [obj.points[i], obj.points[(i + 1) % obj.points.length]];
+  }
+  _openDim(kind, i) {
+    const ends = this._dimEnds(kind, i); if (!ends) return;
+    this._closeDim();
+    const mid = this.w2s([(ends[0][0] + ends[1][0]) / 2, (ends[0][1] + ends[1][1]) / 2]);
+    const inp = document.createElement("input");
+    inp.type = "text"; inp.inputMode = "decimal"; inp.className = "dim-input";
+    inp.value = m2(dist(ends[0], ends[1]));
+    inp.title = this.t("dim_hint");
+    inp.style.left = `${mid[0] - 44}px`; inp.style.top = `${mid[1] - 40}px`;
+    inp.addEventListener("keydown", (ev) => {
+      ev.stopPropagation();
+      if (ev.key === "Enter") { const v = inp.value; this._closeDim(); this._applyDim(kind, i, v); }
+      else if (ev.key === "Escape") this._closeDim();
+    });
+    inp.addEventListener("blur", () => { if (this._dimInput === inp) this._closeDim(); });
+    this._dom.canvas.appendChild(inp);
+    this._dimInput = inp;
+    setTimeout(() => { inp.focus(); inp.select(); }, 0);
+  }
+  _applyDim(kind, i, text) {
+    const m = String(text).trim().replace(",", ".").match(/^(\d+(?:\.\d+)?)\s*(mm|cm|m)?$/i);
+    if (!m) { this._toast(this.t("dim_invalid"), true); return; }
+    const L = parseFloat(m[1]) * ({ mm: 1, cm: 10, m: 1000 }[(m[2] || "m").toLowerCase()]);
+    if (!(L >= 50)) { this._toast(this.t("dim_invalid"), true); return; }
+    const obj = this._selObj(), ends = this._dimEnds(kind, i);
+    if (!obj || !ends) return;
+    const [A, B] = ends, cur = dist(A, B);
+    if (cur < 1) { this._toast(this.t("dim_invalid"), true); return; }
+    const dir = [(B[0] - A[0]) / cur, (B[1] - A[1]) / cur];
+    const nb = [Math.round(A[0] + dir[0] * L), Math.round(A[1] + dir[1] * L)];
+    const delta = [nb[0] - B[0], nb[1] - B[1]];
+    this._beginEdit();
+    if (kind === "line") obj.p2 = nb;
+    else {
+      const pts = obj.points, n = pts.length, bi = (i + 1) % n, ci = (i + 2) % n;
+      // Keep a right angle at the far end: a perpendicular next edge slides along with the corner.
+      if (n >= 4) {
+        const C = pts[ci], v = [C[0] - B[0], C[1] - B[1]], vl = Math.hypot(v[0], v[1]);
+        if (vl > 0 && Math.abs((v[0] * dir[0] + v[1] * dir[1]) / vl) < 0.01) pts[ci] = [C[0] + delta[0], C[1] + delta[1]];
+      }
+      pts[bi] = nb;
+    }
+    this._changed(); this._renderAll();
+  }
+
   /* ---------- keyboard ---------- */
   _onKey(e) {
     if (!this.isConnected || !this._ready) return;
@@ -680,7 +764,11 @@ class RoomnodeDesignerPanel extends HTMLElement {
     if (mod && e.key.toLowerCase() === "y") { e.preventDefault(); this._redo(); return; }
     if (e.key === "Escape") { this.draw = null; this.tool = "select"; this.pendingArea = null; this.sel = null; this._renderAll(); }
     else if (e.key === "Enter" && this.draw) this._finishDraw(false);
-    else if ((e.key === "Delete" || e.key === "Backspace") && this.sel) { e.preventDefault(); this._deleteSel(); }
+    else if ((e.key === "Delete" || e.key === "Backspace") && this.sel) {
+      e.preventDefault();
+      const v = this._vertexSel();
+      if (v !== null) this._deleteVertex(v); else this._deleteSel();
+    }
   }
   _deleteSel() {
     const s = this.sel; if (!s) return;
@@ -806,7 +894,8 @@ class RoomnodeDesignerPanel extends HTMLElement {
     if (!this._dom) return;
     this._dom.title.textContent = this.t("title");
     this._applyPanels(); this._renderFloors(); this._renderStatus(); this._renderTools(); this._renderLeft(); this._renderRight(); this._renderCanvas();
-    const hint = this.tool === "line" ? this.t("hint_line") : this.tool !== "select" ? this.t("hint_poly") : "";
+    const editable = this.sel && (this.sel.type === "room" || this.sel.type === "zone");
+    const hint = this.tool === "line" ? this.t("hint_line") : this.tool !== "select" ? this.t("hint_poly") : editable ? this.t("hint_edit") : "";
     this._dom.hint.textContent = hint;
   }
   _scheduleCanvas() {
@@ -924,6 +1013,11 @@ class RoomnodeDesignerPanel extends HTMLElement {
     }
   }
 
+  /* Clickable dimension label; x and y are screen pixels. */
+  _dimLabel(x, y, text, kind, i) {
+    const w = text.length * 6.6 + 14;
+    return `<g data-t="dim" data-kind="${kind}" data-i="${i}" style="cursor:text"><rect x="${x - w / 2}" y="${y - 12}" width="${w}" height="18" rx="9" fill="var(--card-background-color,#fff)" stroke="var(--primary-color,#03a9f4)" stroke-opacity=".6"/><text x="${x}" y="${y + 1}" font-size="11" text-anchor="middle" fill="var(--primary-text-color,#333)" pointer-events="none">${text}</text></g>`;
+  }
   _renderCanvas() {
     if (!this._dom || !this._ready) return;
     const { w, h, s } = this.view;
@@ -980,12 +1074,18 @@ class RoomnodeDesignerPanel extends HTMLElement {
       const pts = obj.points;
       pts.forEach((p, i) => {
         const q = pts[(i + 1) % pts.length], a = this.w2s(p), b = this.w2s(q);
-        out.push(`<text x="${(a[0] + b[0]) / 2}" y="${(a[1] + b[1]) / 2 - 7}" font-size="11" text-anchor="middle" fill="var(--primary-text-color,#333)" pointer-events="none" paint-order="stroke" stroke="var(--card-background-color,#fff)" stroke-width="3">${m2(dist(p, q))} m</text>`);
+        out.push(this._dimLabel((a[0] + b[0]) / 2, (a[1] + b[1]) / 2 - 12, `${m2(dist(p, q))} m`, "poly", i));
         out.push(`<circle data-t="mh" data-i="${i}" cx="${(a[0] + b[0]) / 2}" cy="${(a[1] + b[1]) / 2}" r="5" fill="var(--card-background-color,#fff)" stroke="var(--primary-color,#03a9f4)" stroke-width="2" opacity=".75" style="cursor:copy"/>`);
       });
-      pts.forEach((p, i) => { const a = this.w2s(p); out.push(`<rect data-t="vh" data-i="${i}" x="${a[0] - 6}" y="${a[1] - 6}" width="12" height="12" rx="2" fill="#fff" stroke="var(--primary-color,#03a9f4)" stroke-width="2.5" style="cursor:pointer"/>`); });
+      const vs = this._vertexSel();
+      pts.forEach((p, i) => { const a = this.w2s(p); out.push(`<rect data-t="vh" data-i="${i}" x="${a[0] - 6}" y="${a[1] - 6}" width="12" height="12" rx="2" fill="${i === vs ? "var(--primary-color,#03a9f4)" : "#fff"}" stroke="var(--primary-color,#03a9f4)" stroke-width="2.5" style="cursor:pointer"/>`); });
+      if (vs !== null && pts.length > 3) {
+        const a = this.w2s(pts[vs]);
+        out.push(`<g data-t="vdel" data-i="${vs}" style="cursor:pointer"><circle cx="${a[0] + 16}" cy="${a[1] - 16}" r="10" fill="var(--error-color,#db4437)" stroke="#fff" stroke-width="2"/><path d="M${a[0] + 12} ${a[1] - 20}l8 8m0-8l-8 8" stroke="#fff" stroke-width="2" stroke-linecap="round"/></g>`);
+      }
     }
     if (obj && this.tool === "select" && this.sel.type === "line") {
+      { const m = this.w2s([(obj.p1[0] + obj.p2[0]) / 2, (obj.p1[1] + obj.p2[1]) / 2]); out.push(this._dimLabel(m[0], m[1] + 30, `${m2(dist(obj.p1, obj.p2))} m`, "line", 0)); }
       [obj.p1, obj.p2].forEach((p, i) => { const a = this.w2s(p); out.push(`<rect data-t="lp" data-i="${i}" x="${a[0] - 6}" y="${a[1] - 6}" width="12" height="12" rx="2" fill="#fff" stroke="#ffb300" stroke-width="2.5" style="cursor:pointer"/>`); });
     }
 
