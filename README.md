@@ -11,7 +11,7 @@ and writes them to those entities.
 
 ## Status
 
-Version 0.1.5. The editor and the coordinate maths were exercised in a browser against a
+Version 0.1.6. The editor and the coordinate maths were exercised in a browser against a
 simulated Home Assistant, and the geometry and validation have unit tests. **It has not yet
 been run inside a real Home Assistant, and the radar axis orientation has not been verified
 on hardware.** See [Before first use](#before-first-use).

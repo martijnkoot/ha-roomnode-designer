@@ -419,15 +419,25 @@ class RoomnodeDesignerPanel extends HTMLElement {
     this._beginEdit();
     const room = this.fl.rooms.find((r) => r.area_id && r.area_id === dev.area_id);
     const at = room ? centroid(room.points) : this._viewCenter();
-    const num = (n) => { const v = parseFloat(this.stateOf(dev, n)?.state); return Number.isFinite(v) ? v : null; };
+    // Distances come from HA in whatever unit the sensor uses; convert to mm and ignore
+    // values outside what the backend accepts instead of storing something unsaveable.
+    const mm = (n, lo, hi) => {
+      const st = this.stateOf(dev, n), v = parseFloat(st?.state);
+      if (!Number.isFinite(v)) return null;
+      const unit = st.attributes?.unit_of_measurement;
+      const k = unit === "mm" ? 1 : unit === "cm" ? 10 : unit === "m" ? 1000 : v < 100 ? 1000 : 1;
+      const out = v * k;
+      return out >= lo && out <= hi ? Math.round(out) : null;
+    };
+    const deg = (n) => { const v = parseFloat(this.stateOf(dev, n)?.state); return v >= 10 && v <= 360 ? v : null; };
     const mode = this.stateOf(dev, "Radar Mounting Mode")?.state;
     const node = {
       id: uid(), device_id: dev.device_id, name: dev.name,
       x: Math.round(at[0]), y: Math.round(at[1]), rotation: 0, flip_x: false,
       mounting: mode === "ceiling" ? "ceiling" : "wall",
-      height: num("Radar Default Mounting Height") ?? 1500,
-      range: num("Radar Default Range") ?? 6000,
-      fov: num("Radar Default Field Of View") ?? 120,
+      height: mm("Radar Default Mounting Height", 0, 10000) ?? 1500,
+      range: mm("Radar Default Range", 500, 20000) ?? 6000,
+      fov: deg("Radar Default Field Of View") ?? 120,
       zones: [], lines: [],
     };
     this._ensureFloor(); this.fl.nodes.push(node);
@@ -831,7 +841,11 @@ class RoomnodeDesignerPanel extends HTMLElement {
       if (area && (!obj.name || obj.name.startsWith(this.t("room")))) obj.name = area.name;
     } else if (f === "mounting") obj.mounting = v;
     else if (f === "flip_x") obj.flip_x = !!v;
-    else if (["height", "range", "x", "y"].includes(f)) { const n = num(); if (n !== null) obj[f] = Math.round(n * 1000); }
+    else if (["height", "range", "x", "y"].includes(f)) {
+      const n = num();
+      const lim = { height: [0, 10000], range: [500, 20000], x: [-1e6, 1e6], y: [-1e6, 1e6] }[f];
+      if (n !== null) obj[f] = Math.min(lim[1], Math.max(lim[0], Math.round(n * 1000)));
+    }
     else if (f === "fov") { const n = num(); if (n !== null) obj.fov = Math.min(360, Math.max(10, n)); }
     else if (f === "rotation") { const n = num(); if (n !== null) obj.rotation = ((n % 360) + 360) % 360; }
     else if (f === "slot") {
