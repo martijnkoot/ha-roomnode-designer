@@ -9,7 +9,7 @@
   :root{--primary-color:#03a9f4;--primary-background-color:#fafafa;--card-background-color:#fff;--primary-text-color:#212121;--secondary-text-color:#727272;--divider-color:#e0e0e0;--app-header-background-color:#03a9f4;--app-header-text-color:#fff;--error-color:#db4437}
   body.dark{--primary-background-color:#111111;--card-background-color:#1c1c1c;--primary-text-color:#e1e1e1;--secondary-text-color:#9b9b9b;--divider-color:#2e2e2e;--app-header-background-color:#1c1c1c}
   html,body{margin:0;height:100%;background:var(--primary-background-color)}
-  roomnode-designer-panel{display:block;height:100vh}
+  roomnode-designer-panel{display:block}
 </style>
 </head>
 <body>
@@ -62,6 +62,8 @@ const hass = {
   callService(d,s,data){ console.log("service",d,s,data); },
 };
 const p = document.getElementById("p");
+// ?wrap=1 mimics Home Assistant, where the panel has no parent with a definite height.
+if (q.get("wrap")) { const w = document.createElement("div"); document.body.replaceChildren(w); w.append(p); document.documentElement.style.height = "auto"; document.body.style.height = "auto"; }
 p.hass = hass; p.narrow = false;
 // live targets: orbit around the first node
 setInterval(() => {
