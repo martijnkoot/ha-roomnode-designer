@@ -19,7 +19,7 @@ const TEXT = {
     tool_select: "Select", tool_room: "Draw room", tool_zone: "Detection zone", tool_excl: "Exclusion zone", tool_line: "Entry line",
     need_node: "Select a roomnode first", snap: "Snap", live: "Live targets", fit: "Fit to view", undo: "Undo", redo: "Redo",
     saved: "Saved", saving: "Saving…", unsaved: "Unsaved changes", conflict: "Changed elsewhere — reload", reload: "Reload",
-    push: "Send to device", pull: "Read from device", sync_hint: "Send writes the radar settings (mode, distance, angles) and the zones, exclusion zones and entry lines to the device. Read does the reverse and replaces the plan's settings and shapes.", pushing: "Pushing…", pushed: "Sent to device", push_failed: "Push failed",
+    push: "Send to device", pull: "Read from device", sync_hint: "Send writes the radar settings (mode, distance, angles) and the zones, exclusion zones and entry lines to the device. Read does the reverse and replaces the plan's settings and shapes.", pushing: "Pushing…", push_shapes: "Send zones & lines to device", shapes_pushed: "Zones and lines sent to the device", pushed: "Sent to device", push_failed: "Push failed",
     pull_confirm: "Replace the radar settings and zones of this roomnode in the plan with the ones stored on the device?",
     pulled: "Zones read from device", last_sent: "Last sent to device",
     node_settings: "Roomnode", name: "Name", device: "Device", mounting: "Mounting", wall: "Wall", ceiling: "Ceiling",
@@ -49,7 +49,7 @@ const TEXT = {
     tool_select: "Selecteren", tool_room: "Kamer tekenen", tool_zone: "Detectiezone", tool_excl: "Uitsluitzone", tool_line: "Entry line",
     need_node: "Selecteer eerst een roomnode", snap: "Magneet", live: "Live doelen", fit: "Passend maken", undo: "Ongedaan maken", redo: "Opnieuw",
     saved: "Opgeslagen", saving: "Opslaan…", unsaved: "Niet-opgeslagen wijzigingen", conflict: "Elders gewijzigd — herlaad", reload: "Herladen",
-    push: "Naar apparaat sturen", pull: "Van apparaat lezen", sync_hint: "Versturen schrijft de radar-instellingen (modus, afstand, hoeken) en de zones, uitsluitzones en toegangslijnen naar het apparaat. Lezen doet het omgekeerde en vervangt de instellingen en vormen in het plan.", pushing: "Versturen…", pushed: "Naar apparaat gestuurd", push_failed: "Versturen mislukt",
+    push: "Naar apparaat sturen", pull: "Van apparaat lezen", sync_hint: "Versturen schrijft de radar-instellingen (modus, afstand, hoeken) en de zones, uitsluitzones en toegangslijnen naar het apparaat. Lezen doet het omgekeerde en vervangt de instellingen en vormen in het plan.", pushing: "Versturen…", push_shapes: "Zones & lijnen naar apparaat sturen", shapes_pushed: "Zones en lijnen naar het apparaat gestuurd", pushed: "Naar apparaat gestuurd", push_failed: "Versturen mislukt",
     pull_confirm: "De radar-instellingen en zones van deze roomnode in de plattegrond vervangen door die op het apparaat?",
     pulled: "Zones van apparaat gelezen", last_sent: "Laatst naar apparaat gestuurd",
     node_settings: "Roomnode", name: "Naam", device: "Apparaat", mounting: "Montage", wall: "Wand", ceiling: "Plafond",
@@ -921,6 +921,7 @@ class RoomnodeDesignerPanel extends HTMLElement {
     if (a === "toggle-zones") { const n = this.selNode(); const ent = this.deviceOf(n)?.entities?.["Polygon Zones Enabled"]; if (ent) this._hass.callService("switch", "toggle", { entity_id: ent }); return; }
     if (a === "reset-people") { const n = this.selNode(); const ent = this.deviceOf(n)?.entities?.["Reset People Count"]; if (ent) this._hass.callService("button", "press", { entity_id: ent }); return; }
     if (a === "push") return this._push();
+    if (a === "push-shapes") return this._pushShapes();
     if (a === "pull") return this._pull();
   }
 
@@ -989,6 +990,17 @@ class RoomnodeDesignerPanel extends HTMLElement {
       const res = await this._hass.callWS({ type: `${API}/push`, node_id: node.id });
       this.lastSent[node.id] = res.sent;
       this._toast(switched ? this.t("radar_switched") : this.t("pushed")); this._renderRight();
+    } catch (err) { this._toast(`${this.t("push_failed")}: ${err?.message || err}`, true); }
+  }
+  /* Only the zones, exclusion zones and entry lines of the selected node (no radar settings). */
+  async _pushShapes() {
+    const node = this.selNode(); if (!node) return;
+    this._toast(this.t("pushing"));
+    try {
+      await this._flushSave();
+      const res = await this._hass.callWS({ type: `${API}/push`, node_id: node.id });
+      this.lastSent[node.id] = res.sent;
+      this._toast(this.t("shapes_pushed")); this._renderRight();
     } catch (err) { this._toast(`${this.t("push_failed")}: ${err?.message || err}`, true); }
   }
   async _pull() {
@@ -1280,6 +1292,7 @@ class RoomnodeDesignerPanel extends HTMLElement {
         ${field(this.t("slot"), `<select data-f="slot">${slots.map((n) => opt(String(n), String(n), String(obj.slot))).join("")}</select>`)}
         ${out ? `<div class="warn">⚠ ${out} ${esc(this.t("outside"))}</div>` : ""}
         <div class="hint">${obj.points.length} / 20</div>
+        <div class="row"><button class="btn sm" data-a="push-shapes" ${this.deviceOf(this.selNode()) ? "" : "disabled"}>${esc(this.t("push_shapes"))}</button></div>
         <div class="row"><button class="btn danger sm" data-a="delete">${esc(this.t("delete"))}</button></div>`;
     } else if (s.type === "line") {
       const slots = [1, 2];
@@ -1287,6 +1300,7 @@ class RoomnodeDesignerPanel extends HTMLElement {
         ${field(this.t("slot"), `<select data-f="slot">${slots.map((n) => opt(String(n), String(n), String(obj.slot))).join("")}</select>`)}
         <label class="f"><span>${esc(this.t("in_side"))}</span><select data-f="in_side">${opt("left", this.t("left"), obj.in_side)}${opt("right", this.t("right"), obj.in_side)}</select></label>
         <div class="row"><button class="btn ghost sm" data-a="flip-dir">${esc(this.t("flip_dir"))}</button><button class="btn ghost sm" data-a="swap-ends">${esc(this.t("swap_ends"))}</button></div>
+        <div class="row"><button class="btn sm" data-a="push-shapes" ${this.deviceOf(this.selNode()) ? "" : "disabled"}>${esc(this.t("push_shapes"))}</button></div>
         <div class="row"><button class="btn danger sm" data-a="delete">${esc(this.t("delete"))}</button></div>`;
     }
   }
