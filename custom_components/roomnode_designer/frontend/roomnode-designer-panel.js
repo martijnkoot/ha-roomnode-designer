@@ -445,8 +445,7 @@ class RoomnodeDesignerPanel extends HTMLElement {
 
   _placeDevice(deviceId) {
     const dev = this.devices.find((d) => d.device_id === deviceId); if (!dev) return;
-    const area = this.areas.find((a) => a.area_id === dev.area_id);
-    if (area?.floor_id && this.floors.some((f) => f.floor_id === area.floor_id)) this.floorId = area.floor_id;
+    // Always place on the floor that is open: the area of the device in Home Assistant must not move it elsewhere.
     this._beginEdit();
     const room = this.fl.rooms.find((r) => r.area_id && r.area_id === dev.area_id);
     const at = room ? centroid(room.points) : this._viewCenter();
