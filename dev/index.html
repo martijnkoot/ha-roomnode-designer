@@ -79,7 +79,7 @@ setInterval(() => {
     states[d.entities["Polygon Zone 1 Presence"]] = {state: Math.sin(t)>0 ? "on":"off", attributes:{}};
   }
   p.hass = {...hass, states};
-}, 250);
+}, 100);
 window.__p = p;
 </script>
 </body>

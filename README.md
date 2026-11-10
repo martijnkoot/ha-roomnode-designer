@@ -54,6 +54,8 @@ layout, otherwise the Marketplace cannot update it.
    device** does the reverse and replaces those settings and shapes in the plan.
 6. **Live targets** overlays the radar's tracked targets. Walk through the room: if the dots
    move opposite to you, enable *Mirror left/right* on the node.
+   The dots glide smoothly between the radar's updates and leave a trail that fades out over
+   about 2.5 seconds.
 
 Both side panels and the toolbar can be hidden with the buttons in the top corners of the drawing area to make more room; a dot on the right button means something is selected. With the toolbar hidden the keyboard shortcuts below still work. The choice is remembered per browser.
 

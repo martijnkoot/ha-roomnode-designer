@@ -80,6 +80,7 @@ const clone = (o) => JSON.parse(JSON.stringify(o));
 const rad = (d) => (d * Math.PI) / 180;
 const m2 = (mm) => (mm / 1000).toFixed(2);
 const dist = (a, b) => Math.hypot(a[0] - b[0], a[1] - b[1]);
+const TRAIL_MS = 2500, TARGET_FADE_MS = 400;
 
 /* ---- radar math (mirror of geometry.py) ---- */
 function basis(node) {
@@ -232,6 +233,7 @@ class RoomnodeDesignerPanel extends HTMLElement {
     this.pendingArea = null;
     this.snapOn = true;
     this.live = false;
+    this._ls = new Map();
     this.view = { ox: 0, oy: 0, s: 0.08, w: 800, h: 600 };
     this.cursor = null;
     this.undo = [];
@@ -256,7 +258,12 @@ class RoomnodeDesignerPanel extends HTMLElement {
     this._hass = h;
     this._ensureDom();
     if (first) this._init();
-    else if (this.live && this._ready) this._scheduleCanvas();
+    else if (this.live && this._ready) {
+      this._liveSample(); this._liveKick();
+      // Zone highlights and people counts live in the main canvas: redraw it only when they change.
+      const sig = this._liveSig();
+      if (sig !== this._liveSigPrev) { this._liveSigPrev = sig; this._scheduleCanvas(); }
+    }
   }
   get hass() { return this._hass; }
   set narrow(v) { this._narrow = v; }
@@ -896,7 +903,7 @@ class RoomnodeDesignerPanel extends HTMLElement {
     }
     if (a === "tool") { this._setTool(id); return; }
     if (a === "snap") { this.snapOn = !this.snapOn; this._renderAll(); return; }
-    if (a === "live") { this.live = !this.live; this._renderAll(); return; }
+    if (a === "live") { this.live = !this.live; this._ls.clear(); this._renderAll(); if (this.live) { this._liveSample(); this._liveKick(); } return; }
     if (a === "undo") return this._undo();
     if (a === "redo") return this._redo();
     if (a === "zoom-in") return this._zoomAt(this.view.w / 2, this.view.h / 2, 1.3);
@@ -1026,6 +1033,63 @@ class RoomnodeDesignerPanel extends HTMLElement {
       out.push({ n: i, p: radarToFloor([x * k, y * k], node) });
     }
     return out;
+  }
+
+  /* Targets move smoothly towards the latest reported position (the radar reports every ~100 ms)
+     and leave a fading trail; only the live layer is redrawn per frame. */
+  _liveSample() {
+    const now = performance.now(), seen = new Set();
+    for (const n of this.fl?.nodes || []) for (const t of this._liveTargets(n)) {
+      const key = `${n.id}:${t.n}`; seen.add(key);
+      let L = this._ls.get(key);
+      if (!L || L.gone) { L = { n: t.n, pos: t.p.slice(), goal: t.p, trail: [], gone: 0 }; this._ls.set(key, L); }
+      else { if (dist(L.pos, t.p) > 1500) { L.pos = t.p.slice(); L.trail = []; } L.goal = t.p; }
+    }
+    for (const [k, L] of this._ls) if (!seen.has(k) && !L.gone) L.gone = now;
+  }
+  _liveSig() {
+    return (this.fl?.nodes || []).map((n) => {
+      const dev = this.deviceOf(n);
+      return [this.stateOf(dev, "People Count")?.state, ...n.zones.map((z) => this.stateOf(dev, `Polygon Zone ${z.slot} Presence`)?.state)].join("|");
+    }).join(";");
+  }
+  _liveKick() {
+    if (!this._liveRaf) this._liveRaf = requestAnimationFrame((ts) => this._liveFrame(ts));
+  }
+  _liveFrame(ts) {
+    this._liveRaf = null;
+    if (!this.live || !this._ready) { this._ls.clear(); this._liveTs = 0; this._drawLive(ts); return; }
+    const dt = Math.min(100, ts - (this._liveTs || ts)); this._liveTs = ts;
+    const k = 1 - Math.exp(-dt / 80);
+    for (const [key, L] of this._ls) {
+      L.pos = [L.pos[0] + (L.goal[0] - L.pos[0]) * k, L.pos[1] + (L.goal[1] - L.pos[1]) * k];
+      const last = L.trail[L.trail.length - 1];
+      if (!L.gone && (!last || dist(last, L.pos) > 25)) L.trail.push([L.pos[0], L.pos[1], ts]);
+      while (L.trail.length && ts - L.trail[0][2] > TRAIL_MS) L.trail.shift();
+      if (L.gone && ts - L.gone > TARGET_FADE_MS && !L.trail.length) this._ls.delete(key);
+    }
+    this._drawLive(ts);
+    if (this._ls.size) { this._liveRaf = requestAnimationFrame((t) => this._liveFrame(t)); } else this._liveTs = 0;
+  }
+  _drawLive(ts) {
+    const g = this._dom?.svg?.querySelector("#live-layer"); if (!g) return;
+    if (!this.live) { g.innerHTML = ""; return; }
+    const out = [];
+    for (const L of this._ls.values()) {
+      const fade = L.gone ? Math.max(0, 1 - (ts - L.gone) / TARGET_FADE_MS) : 1;
+      const pts = [...L.trail, [L.pos[0], L.pos[1], ts]];
+      for (let i = 1; i < pts.length; i++) {
+        const age = Math.min(1, (ts - pts[i][2]) / TRAIL_MS), a = this.w2s(pts[i - 1]), b = this.w2s(pts[i]);
+        const o = Math.pow(1 - age, 1.6) * 0.6;
+        if (o < 0.02) continue;
+        out.push(`<line x1="${a[0].toFixed(1)}" y1="${a[1].toFixed(1)}" x2="${b[0].toFixed(1)}" y2="${b[1].toFixed(1)}" stroke="#ff1744" stroke-opacity="${o.toFixed(2)}" stroke-width="${(2 + 4 * (1 - age)).toFixed(1)}" stroke-linecap="round"/>`);
+      }
+      if (fade > 0) {
+        const q = this.w2s(L.pos);
+        out.push(`<g opacity="${fade.toFixed(2)}"><circle cx="${q[0].toFixed(1)}" cy="${q[1].toFixed(1)}" r="14" fill="#ff1744" fill-opacity=".18"/><circle cx="${q[0].toFixed(1)}" cy="${q[1].toFixed(1)}" r="6" fill="#ff1744" stroke="#fff" stroke-width="2"/><text x="${(q[0] + 10).toFixed(1)}" y="${(q[1] - 10).toFixed(1)}" font-size="11" font-weight="700" fill="#ff1744">${L.n}</text></g>`);
+      }
+    }
+    g.innerHTML = out.join("");
   }
 
   /* ---------- rendering ---------- */
@@ -1305,13 +1369,8 @@ class RoomnodeDesignerPanel extends HTMLElement {
       if (!this.locked) [obj.p1, obj.p2].forEach((p, i) => { const a = this.w2s(p); out.push(`<rect data-t="lp" data-i="${i}" x="${a[0] - 6}" y="${a[1] - 6}" width="12" height="12" rx="2" fill="#fff" stroke="#ffb300" stroke-width="2.5" style="cursor:pointer"/>`); });
     }
 
-    // live targets
-    if (this.live) {
-      for (const n of this.fl.nodes) for (const t of this._liveTargets(n)) {
-        const q = this.w2s(t.p);
-        out.push(`<g pointer-events="none"><circle cx="${q[0]}" cy="${q[1]}" r="14" fill="#ff1744" fill-opacity=".18"/><circle cx="${q[0]}" cy="${q[1]}" r="6" fill="#ff1744" stroke="#fff" stroke-width="2"/><text x="${q[0] + 10}" y="${q[1] - 10}" font-size="11" font-weight="700" fill="#ff1744">${t.n}</text></g>`);
-      }
-    }
+    // live targets (drawn by _drawLive, separately and per animation frame)
+    out.push(`<g id="live-layer" pointer-events="none"></g>`);
 
     // nodes
     for (const n of this.fl.nodes) {
@@ -1369,6 +1428,7 @@ class RoomnodeDesignerPanel extends HTMLElement {
     svg.setAttribute("viewBox", `0 0 ${w} ${h}`);
     svg.setAttribute("class", this.drag?.type === "pan" ? "pan" : this.tool !== "select" ? "draw" : "");
     svg.innerHTML = out.join("");
+    this._drawLive(performance.now());
   }
 }
 
